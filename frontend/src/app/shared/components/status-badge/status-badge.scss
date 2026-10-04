@@ -1,0 +1,31 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.625rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.status-badge--info {
+  background: var(--color-info-bg);
+  color: var(--color-info-text);
+}
+
+.status-badge--awaiting {
+  background: var(--color-awaiting-bg);
+  color: var(--color-awaiting-text);
+}
+
+.status-badge--settled {
+  background: var(--color-settled-bg);
+  color: var(--color-settled-text);
+}
+
+.status-badge--rejected {
+  background: var(--color-rejected-bg);
+  color: var(--color-rejected-text);
+}
