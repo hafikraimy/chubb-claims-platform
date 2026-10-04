@@ -1,0 +1,71 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav
+    class="sidebar"
+    [mode]="compactLayout() ? 'over' : 'side'"
+    [opened]="!compactLayout() || mobileNavigationOpen()"
+    (closedStart)="mobileNavigationOpen.set(false)"
+  >
+    <a class="brand" [routerLink]="homeUrl()">
+      <span class="brand-mark" aria-hidden="true">C</span>
+      <span>
+        <strong>Chubb Claims</strong>
+        <small>APAC platform</small>
+      </span>
+    </a>
+
+    <nav aria-label="Primary navigation">
+      <p class="navigation-label">Workspace</p>
+      @for (item of navigationItems(); track item.route) {
+        <a
+          class="navigation-link"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeMobileNavigation()"
+        >
+          {{ item.label }}
+        </a>
+      }
+    </nav>
+
+    <div class="demo-indicator">
+      <span class="demo-dot" aria-hidden="true"></span>
+      Demo environment
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar class="topbar">
+      @if (compactLayout()) {
+        <button
+          mat-button
+          type="button"
+          aria-label="Toggle navigation"
+          [attr.aria-expanded]="mobileNavigationOpen()"
+          (click)="toggleNavigation()"
+        >
+          Menu
+        </button>
+      }
+
+      <span class="topbar-spacer"></span>
+
+      @if (currentUser(); as user) {
+        <button mat-button type="button" [matMenuTriggerFor]="userMenu">
+          <span class="user-summary">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-context">{{ user.role }} · {{ user.market }}</span>
+          </span>
+        </button>
+
+        <mat-menu #userMenu="matMenu" xPosition="before">
+          <button mat-menu-item type="button" (click)="switchUser()">Switch demo user</button>
+        </mat-menu>
+      }
+    </mat-toolbar>
+
+    <div class="page-content">
+      <router-outlet />
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

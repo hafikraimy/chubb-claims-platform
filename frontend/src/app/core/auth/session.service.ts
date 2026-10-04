@@ -3,6 +3,7 @@ import { catchError, Observable, of, tap, throwError } from 'rxjs';
 import { CurrentUserApiService } from '../api/current-user-api.service';
 import { CurrentUser } from './current-user';
 import { DemoIdentityStore } from './demo-identity-store.service';
+import { UserRole } from './user-role';
 
 export type SessionStatus = 'anonymous' | 'loading' | 'authenticated' | 'error';
 
@@ -41,6 +42,17 @@ export class SessionService {
     this.identityStore.clear();
     this.currentUserState.set(null);
     this.statusState.set('anonymous');
+  }
+
+  homeUrlFor(role: UserRole): string {
+    switch (role) {
+      case UserRole.Claimant:
+        return '/claimant';
+      case UserRole.ClaimsOfficer:
+        return '/officer';
+      case UserRole.Manager:
+        return '/manager';
+    }
   }
 
   private loadCurrentUser(): Observable<CurrentUser> {

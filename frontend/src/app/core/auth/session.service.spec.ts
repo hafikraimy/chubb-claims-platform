@@ -90,4 +90,10 @@ describe('SessionService', () => {
     expect(service.currentUser()).toBeNull();
     expect(service.status()).toBe('anonymous');
   });
+
+  it('maps each role to its home area', () => {
+    expect(service.homeUrlFor(UserRole.Claimant)).toBe('/claimant');
+    expect(service.homeUrlFor(UserRole.ClaimsOfficer)).toBe('/officer');
+    expect(service.homeUrlFor(UserRole.Manager)).toBe('/manager');
+  });
 });

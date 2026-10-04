@@ -1,6 +1,7 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter, Router } from '@angular/router';
 import { DemoIdentityStore } from '../../../core/auth/demo-identity-store.service';
 import { UserRole } from '../../../core/auth/user-role';
 import { demoUserInterceptor } from '../../../core/interceptors/demo-user.interceptor';
@@ -16,6 +17,7 @@ describe('UserSelectionPage', () => {
       providers: [
         provideHttpClient(withInterceptors([demoUserInterceptor])),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
 
@@ -40,6 +42,8 @@ describe('UserSelectionPage', () => {
   });
 
   it('selects and validates a demo user', () => {
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
     const fixture = TestBed.createComponent(UserSelectionPage);
     fixture.detectChanges();
 
@@ -62,6 +66,7 @@ describe('UserSelectionPage', () => {
     const status = fixture.nativeElement.querySelector('[role="status"]');
     expect(status.textContent).toContain('Signed in as');
     expect(status.textContent).toContain('Hafiz Claimant');
+    expect(navigate).toHaveBeenCalledWith('/claimant');
   });
 
   it('shows a useful message when the API is unavailable', () => {
