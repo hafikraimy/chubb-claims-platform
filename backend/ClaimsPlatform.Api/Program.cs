@@ -1,4 +1,5 @@
 using ClaimsPlatform.Api.Infrastructure.Persistence;
+using ClaimsPlatform.Api.Infrastructure.Seeding;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,14 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    await using var scope = app.Services.CreateAsyncScope();
+
+    var dbContext =
+        scope.ServiceProvider.GetRequiredService<ClaimsDbContext>();
+
+    await dbContext.Database.MigrateAsync();
+    await DemoDataSeeder.SeedAsync(dbContext);
 }
 
 app.UseHttpsRedirection();
