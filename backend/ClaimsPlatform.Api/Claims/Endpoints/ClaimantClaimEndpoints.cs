@@ -19,6 +19,9 @@ public static class ClaimantClaimEndpoints
         group.MapPost("/", SubmitClaimAsync);
         group.MapGet("/", GetClaimsAsync);
         group.MapGet("/{claimId:guid}", GetClaimAsync);
+        group.MapPost(
+            "/{claimId:guid}/information-requests/{requestId:guid}/response",
+            RespondToInformationRequestAsync);
 
         return endpoints;
     }
@@ -102,5 +105,44 @@ public static class ClaimantClaimEndpoints
         }
 
         return Results.Ok(claim.ToDetailResponse());
+    }
+
+    private static async Task<IResult> RespondToInformationRequestAsync(
+        Guid claimId,
+        Guid requestId,
+        RespondToInformationRequestRequest request,
+        ClaimsPrincipal principal,
+        ClaimsDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        var claimantId = principal.GetUserId();
+
+        var claim = await dbContext.Claims
+            .Include(candidate => candidate.InformationRequests)
+            .SingleOrDefaultAsync(
+                candidate =>
+                    candidate.Id == claimId &&
+                    candidate.ClaimantId == claimantId,
+                cancellationToken);
+
+        if (claim is null)
+        {
+            return Results.NotFound();
+        }
+
+        claim.RespondToInformationRequest(
+            claimantId,
+            requestId,
+            request.Response,
+            DateTimeOffset.UtcNow);
+
+        dbContext.ClaimHistoryEntries.Add(claim.History.Last());
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Results.Ok(new ClaimUpdatedResponse(
+            claim.Id,
+            claim.Status,
+            claim.UpdatedAt));
     }
 }
