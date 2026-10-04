@@ -31,6 +31,8 @@ public class ClaimTests
             submittedAt: SubmittedAt);
 
         Assert.NotEqual(Guid.Empty, claim.Id);
+        Assert.StartsWith("CLM-", claim.ReferenceNumber);
+        Assert.Equal(36, claim.ReferenceNumber.Length);
         Assert.Equal(ClaimantId, claim.ClaimantId);
         Assert.Equal(ClaimType.Motor, claim.Type);
         Assert.Equal(ClaimStatus.Submitted, claim.Status);

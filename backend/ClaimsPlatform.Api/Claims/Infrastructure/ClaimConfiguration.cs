@@ -16,6 +16,19 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
         builder.Property(claim => claim.Id)
             .HasColumnName("id");
 
+        builder.Property(claim => claim.ReferenceNumber)
+            .HasColumnName("reference_number")
+            .HasMaxLength(40)
+            .IsRequired();
+
+        builder.HasIndex(claim => claim.ReferenceNumber)
+            .IsUnique()
+            .HasDatabaseName("ux_claims_reference_number");
+
+        builder.Property(claim => claim.Version)
+            .HasColumnName("xmin")
+            .IsRowVersion();
+
         builder.Property(claim => claim.ClaimantId)
             .HasColumnName("claimant_id")
             .IsRequired();

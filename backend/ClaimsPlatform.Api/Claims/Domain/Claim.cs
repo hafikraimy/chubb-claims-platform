@@ -10,6 +10,7 @@ public class Claim
 
     private Claim(
         Guid id,
+        string referenceNumber,
         Guid claimantId,
         ClaimType type,
         string policyNumber,
@@ -22,6 +23,7 @@ public class Claim
         DateTimeOffset submittedAt)
     {
         Id = id;
+        ReferenceNumber = referenceNumber;
         ClaimantId = claimantId;
         Type = type;
         PolicyNumber = policyNumber;
@@ -45,6 +47,10 @@ public class Claim
     }
 
     public Guid Id { get; private set; }
+
+    public string ReferenceNumber { get; private set; } = string.Empty;
+
+    public uint Version { get; private set; }
 
     public Guid ClaimantId { get; private set; }
 
@@ -128,8 +134,12 @@ public class Claim
                 "Reported loss amount must be greater than zero.");
         }
 
+        var id = Guid.NewGuid();
+        var referenceNumber = $"CLM-{id:N}".ToUpperInvariant();
+
         return new Claim(
-            id: Guid.NewGuid(),
+            id: id,
+            referenceNumber: referenceNumber,
             claimantId: claimantId,
             type: type,
             policyNumber: policyNumber.Trim(),
