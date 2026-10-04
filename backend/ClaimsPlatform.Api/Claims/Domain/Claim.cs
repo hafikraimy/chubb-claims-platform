@@ -78,6 +78,10 @@ public class Claim
 
     public IReadOnlyCollection<InformationRequest> InformationRequests => _informationRequests;
 
+    public string? DecisionReason { get; private set; }
+
+    public decimal? SettlementAmount { get; private set; }
+
     public static Claim Submit(
         Guid claimantId,
         ClaimType type,
@@ -314,5 +318,70 @@ public class Claim
             eventType: ClaimHistoryEventType.InformationProvided,
             description: "Additional information provided.",
             occurredAt: respondedAt));
+    }
+
+    public void Settle(
+        Guid officerId,
+        decimal settlementAmount,
+        string reason,
+        DateTimeOffset decidedAt)
+    {
+        ValidateDecision(officerId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+
+        if (settlementAmount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(settlementAmount),
+                "Settlement amount must be greater than zero.");
+        }
+
+        Status = ClaimStatus.Settled;
+        SettlementAmount = settlementAmount;
+        DecisionReason = reason.Trim();
+        UpdatedAt = decidedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: officerId,
+            eventType: ClaimHistoryEventType.Settled,
+            description: "Claim settled.",
+            occurredAt: decidedAt));
+    }
+
+    public void Reject(
+        Guid officerId,
+        string reason,
+        DateTimeOffset decidedAt)
+    {
+        ValidateDecision(officerId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+
+        Status = ClaimStatus.Rejected;
+        SettlementAmount = null;
+        DecisionReason = reason.Trim();
+        UpdatedAt = decidedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: officerId,
+            eventType: ClaimHistoryEventType.Rejected,
+            description: "Claim rejected.",
+            occurredAt: decidedAt));
+    }
+
+    private void ValidateDecision(Guid officerId)
+    {
+        if (AssignedOfficerId != officerId)
+        {
+            throw new InvalidOperationException(
+                "Only the assigned officer can decide this claim.");
+        }
+
+        if (Status != ClaimStatus.InReview)
+        {
+            throw new InvalidOperationException(
+                "Only a claim in review can be settled or rejected.");
+        }
     }
 }

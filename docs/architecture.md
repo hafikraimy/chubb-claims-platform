@@ -124,6 +124,7 @@ The claim records:
 - Incident date, location, and description.
 - Claimant-reported loss amount and the officer-assessed loss amount.
 - Current status and assigned officer.
+- Final decision reason and settlement amount where applicable.
 - Submission and update timestamps.
 - A concurrency version.
 
@@ -139,10 +140,13 @@ This is structured Q&A, not a conversation thread. Each request has one question
 and one answer. Answered requests remain as read-only history. If the answer is
 not enough, the officer creates another request after reviewing it.
 
-### Claim decision
+### Final decision
 
-An immutable settlement or rejection result with the deciding officer, reason,
-timestamp, and settlement amount where applicable.
+The final decision is stored on the claim instead of in a separate decision
+entity. The terminal status records whether it was settled or rejected, while
+the claim stores the reason and settlement amount where applicable. The
+assigned officer is the deciding officer, and the final update timestamp is the
+decision time. Terminal claims cannot be reassigned or changed.
 
 ### Claim history
 
@@ -205,9 +209,8 @@ The minimal schema is:
 | --- | --- |
 | `teams` | Market and manager |
 | `users` | Role, market, optional team |
-| `claims` | Claimant, current officer, incident, amounts, status, version |
+| `claims` | Claimant, current officer, incident, amounts, status, final decision, version |
 | `information_requests` | Claim, requesting officer, question, response |
-| `claim_decisions` | One terminal decision for a claim |
 | `claim_history` | Append-only claim audit entries and acting user |
 
 Use UUID primary keys, `timestamptz` timestamps, `numeric(18,2)` monetary
@@ -348,8 +351,9 @@ For a selected period, initially the last 30 days, report:
 - Average time from submission to decision.
 - Total decisions completed.
 
-Decision attribution uses the officer recorded on `claim_decisions`, not whoever
-currently owns the claim. Approval rate is not treated as a quality metric
+Decision attribution uses the assigned officer on terminal claims. This is safe
+for the MVP because only the assigned officer can decide a claim and terminal
+claims cannot be reassigned. Approval rate is not treated as a quality metric
 because claim complexity and outcome correctness are not available.
 
 ### Outstanding liability

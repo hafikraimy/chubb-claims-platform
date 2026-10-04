@@ -83,6 +83,14 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
             .HasColumnName("updated_at")
             .HasColumnType("timestamp with time zone")
             .IsRequired();
+    
+        builder.Property(claim => claim.DecisionReason)
+            .HasColumnName("decision_reason")
+            .HasMaxLength(1_000);
+
+        builder.Property(claim => claim.SettlementAmount)
+            .HasColumnName("settlement_amount")
+            .HasPrecision(18, 2);
 
         builder.HasIndex(claim => claim.ClaimantId)
             .HasDatabaseName("ix_claims_claimant_id");
@@ -115,6 +123,6 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
 
         builder.Navigation(claim => claim.InformationRequests)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
-    
+
     }
 }

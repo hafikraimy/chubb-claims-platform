@@ -257,6 +257,143 @@ public class ClaimTests
         Assert.True(claim.InformationRequests.Single().IsOpen);
     }
 
+    [Fact]
+    public void Settle_InReviewClaim_SettlesClaim()
+    {
+        var claim = CreateInReviewClaim();
+        var decidedAt = SubmittedAt.AddHours(2);
+
+        claim.Settle(
+            officerId: OfficerId,
+            settlementAmount: 2_000m,
+            reason: "Repair estimate approved.",
+            decidedAt: decidedAt);
+
+        Assert.Equal(ClaimStatus.Settled, claim.Status);
+        Assert.Equal(2_000m, claim.SettlementAmount);
+        Assert.Equal("Repair estimate approved.", claim.DecisionReason);
+        Assert.Equal(decidedAt, claim.UpdatedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(ClaimHistoryEventType.Settled, history.EventType);
+        Assert.Equal(OfficerId, history.ActingUserId);
+        Assert.Equal(decidedAt, history.OccurredAt);
+    }
+
+    [Fact]
+    public void Reject_InReviewClaim_RejectsClaim()
+    {
+        var claim = CreateInReviewClaim();
+        var decidedAt = SubmittedAt.AddHours(2);
+
+        claim.Reject(
+            officerId: OfficerId,
+            reason: "The incident is not covered.",
+            decidedAt: decidedAt);
+
+        Assert.Equal(ClaimStatus.Rejected, claim.Status);
+        Assert.Null(claim.SettlementAmount);
+        Assert.Equal(
+            "The incident is not covered.",
+            claim.DecisionReason);
+        Assert.Equal(decidedAt, claim.UpdatedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(ClaimHistoryEventType.Rejected, history.EventType);
+        Assert.Equal(OfficerId, history.ActingUserId);
+    }
+
+    [Fact]
+    public void Settle_ByDifferentOfficer_ThrowsInvalidOperationException()
+    {
+        var claim = CreateInReviewClaim();
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            claim.Settle(
+                officerId: OtherOfficerId,
+                settlementAmount: 2_000m,
+                reason: "Attempted settlement.",
+                decidedAt: SubmittedAt.AddHours(2)));
+
+        Assert.Equal(
+            "Only the assigned officer can decide this claim.",
+            exception.Message);
+
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Null(claim.DecisionReason);
+        Assert.Null(claim.SettlementAmount);
+    }
+
+    [Fact]
+    public void Settle_AwaitingInformation_ThrowsInvalidOperationException()
+    {
+        var claim = CreateInReviewClaim();
+
+        claim.RequestInformation(
+            officerId: OfficerId,
+            question: "Please provide the police report reference.",
+            requestedAt: SubmittedAt.AddHours(2));
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            claim.Settle(
+                officerId: OfficerId,
+                settlementAmount: 2_000m,
+                reason: "Attempted early settlement.",
+                decidedAt: SubmittedAt.AddHours(3)));
+
+        Assert.Equal(
+            "Only a claim in review can be settled or rejected.",
+            exception.Message);
+
+        Assert.Equal(ClaimStatus.AwaitingInfo, claim.Status);
+        Assert.Null(claim.DecisionReason);
+    }
+
+    [Fact]
+    public void Settle_WithNonPositiveAmount_ThrowsArgumentOutOfRangeException()
+    {
+        var claim = CreateInReviewClaim();
+
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            claim.Settle(
+                officerId: OfficerId,
+                settlementAmount: 0m,
+                reason: "Invalid settlement.",
+                decidedAt: SubmittedAt.AddHours(2)));
+
+        Assert.Equal("settlementAmount", exception.ParamName);
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Null(claim.SettlementAmount);
+    }
+
+    [Fact]
+    public void Reject_SettledClaim_ThrowsInvalidOperationException()
+    {
+        var claim = CreateInReviewClaim();
+
+        claim.Settle(
+            officerId: OfficerId,
+            settlementAmount: 2_000m,
+            reason: "Repair estimate approved.",
+            decidedAt: SubmittedAt.AddHours(2));
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            claim.Reject(
+                officerId: OfficerId,
+                reason: "Attempted second decision.",
+                decidedAt: SubmittedAt.AddHours(3)));
+
+        Assert.Equal(
+            "Only a claim in review can be settled or rejected.",
+            exception.Message);
+
+        Assert.Equal(ClaimStatus.Settled, claim.Status);
+        Assert.Equal(2_000m, claim.SettlementAmount);
+        Assert.Equal("Repair estimate approved.", claim.DecisionReason);
+    }
+
     private static Claim CreateSubmittedClaim()
     {
         return Claim.Submit(

@@ -133,3 +133,7 @@ still support ownership, foreign-key lookups, and each user's claim list. I am r
 ## Simplified team management
 
 I questioned the manager relationship because `WithMany` was confusing. I chose a simple one-to-one rule, one team has one manager, and one manager manages only one team.
+
+## Kept final decisions on the claim
+
+I challenged the separate decision model because it duplicated claim status and claim decision status. I kept the decision reason and settlement amount on the claim.
