@@ -50,16 +50,19 @@ The API is organised by feature:
 
 ```text
 ClaimsPlatform.Api
-  Access/             demo identity and authorization policies
-  Claims/             submission, workflow, information, decisions
-  WorkManagement/     queues, assignment, manager reporting
+  Access/             controllers, demo identity, authorization policies
+  Claims/             controllers, application services, domain workflow
+  WorkManagement/     controllers, work and reporting services
   Infrastructure/     EF Core, PostgreSQL, seeding
   Common/             error handling and shared API concerns
 ```
 
-Domain rules belong in domain entities or focused application services, not in
-HTTP endpoints. EF Core is used directly for persistence; a generic repository,
-MediatR, event sourcing, and a CQRS framework are unnecessary for this scope.
+Controllers are the HTTP boundary and stay thin: they apply authorization,
+translate service outcomes to status codes, and return DTOs. Focused
+application services orchestrate use cases and query EF Core. Domain rules stay
+on domain entities. EF Core is used directly as the repository and unit of work;
+an additional generic repository, MediatR, event sourcing, and a CQRS framework
+are unnecessary for this scope.
 
 ## Roles and authorization
 

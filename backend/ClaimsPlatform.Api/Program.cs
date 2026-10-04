@@ -2,28 +2,35 @@ using System.Text.Json.Serialization;
 using ClaimsPlatform.Api.Access.Authentication;
 using ClaimsPlatform.Api.Access.Authorization;
 using ClaimsPlatform.Api.Access.Domain;
-using ClaimsPlatform.Api.Access.Endpoints;
-using ClaimsPlatform.Api.Claims.Endpoints;
+using ClaimsPlatform.Api.Claims.Services;
 using ClaimsPlatform.Api.Common.Errors;
 using ClaimsPlatform.Api.Infrastructure.Persistence;
 using ClaimsPlatform.Api.Infrastructure.Seeding;
-using ClaimsPlatform.Api.WorkManagement.Endpoints;
+using ClaimsPlatform.Api.WorkManagement.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-var connectionString = builder.Configuration.GetConnectionString("ClaimsDatabase") 
+var connectionString = builder.Configuration.GetConnectionString("ClaimsDatabase")
     ?? throw new InvalidOperationException(
         "Connection string 'ClaimsDatabase' was not found");
 
-builder.Services.AddDbContext<ClaimsDbContext>(options => 
-    options.UseNpgsql(connectionString)); 
+builder.Services.AddDbContext<ClaimsDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.Converters.Add(
-        new JsonStringEnumConverter()));
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()));
+
+builder.Services.AddScoped<ClaimantClaimService>();
+builder.Services.AddScoped<ClaimQueryService>();
+builder.Services.AddScoped<ClaimWorkflowService>();
+builder.Services.AddScoped<WorkService>();
+builder.Services.AddScoped<TeamReportingService>();
+builder.Services.AddScoped<ManagerWorkService>();
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
@@ -77,11 +84,6 @@ app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapAccessEndpoints();
-app.MapClaimQueryEndpoints();
-app.MapClaimantClaimEndpoints();
-app.MapOfficerClaimEndpoints();
-app.MapOfficerWorkEndpoints();
-app.MapManagerWorkEndpoints();
+app.MapControllers();
 
 app.Run();

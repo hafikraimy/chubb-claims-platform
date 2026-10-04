@@ -190,3 +190,17 @@ expose manager claims, exposure, or assignment actions.
 
 I kept the query in the officer endpoint for now. A shared reporting service
 would add more structure than this small MVP needs.
+
+## Refactored endpoints into controllers and services
+
+I challenged the Minimal API structure after the endpoint files grew large.
+The early approach was reasonable, but HTTP concerns, EF queries, orchestration,
+and reporting calculations had become mixed together.
+
+I moved the routes into thin controllers and the use cases into focused
+services. I also extracted one team reporting service so officer and manager
+metrics use the same calculation. Domain rules remain on the claim entity.
+
+I did not add repositories. EF Core already provides repository and unit-of-work
+behaviour, and wrapping it would add ceremony without a second persistence
+implementation or a demonstrated testing need.
