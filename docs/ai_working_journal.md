@@ -153,3 +153,21 @@ commands. I accepted this.
 see assigned and eligible queue claims, and managers see their market's
 unassigned claims and claims assigned to their team. Assignment and workflow
 actions stay role-specific.
+
+## Added manager assignment
+
+I implemented manager assignment after agreeing that detail remains shared.
+The API checks that the claim is in the manager's scope and that the selected
+officer belongs to the manager's team and market. The claim domain handles the
+difference between assignment and reassignment and records the manager as the
+actor.
+
+## Made manager assignment usable
+
+I added one manager dashboard query instead of separate claim and officer-list
+endpoints. It returns open claims in the manager's scope, team officers with
+workload counts, and outstanding exposure grouped by currency. This gives the
+manager screen the data needed to assign work without expanding the API.
+
+I kept historical performance metrics for a later slice so this change stays
+focused on assignment and current workload.

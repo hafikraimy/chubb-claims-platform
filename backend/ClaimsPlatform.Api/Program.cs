@@ -82,5 +82,6 @@ app.MapClaimQueryEndpoints();
 app.MapClaimantClaimEndpoints();
 app.MapOfficerClaimEndpoints();
 app.MapOfficerWorkEndpoints();
+app.MapManagerWorkEndpoints();
 
 app.Run();

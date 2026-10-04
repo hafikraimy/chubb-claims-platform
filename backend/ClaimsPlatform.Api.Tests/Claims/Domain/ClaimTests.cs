@@ -12,6 +12,9 @@ public class ClaimTests
     private static readonly Guid ClaimantId =
         Guid.Parse("11111111-1111-1111-1111-111111111111");
 
+    private static readonly Guid ManagerId =
+        Guid.Parse("99999999-9999-9999-9999-999999999999");
+
     private static readonly DateTimeOffset SubmittedAt =
         new(2026, 10, 3, 8, 30, 0, TimeSpan.Zero);
 
@@ -113,6 +116,28 @@ public class ClaimTests
         Assert.Equal(ClaimHistoryEventType.Assigned, history.EventType);
         Assert.Equal(OfficerId, history.ActingUserId);
         Assert.Equal(assignedAt, history.OccurredAt);
+    }
+
+    [Fact]
+    public void AssignTo_AssignedClaim_ReassignsOfficerAndRecordsManager()
+    {
+        var claim = CreateInReviewClaim();
+        var reassignedAt = SubmittedAt.AddHours(2);
+
+        claim.AssignTo(
+            officerId: OtherOfficerId,
+            actingUserId: ManagerId,
+            assignedAt: reassignedAt);
+
+        Assert.Equal(OtherOfficerId, claim.AssignedOfficerId);
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Equal(reassignedAt, claim.UpdatedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(ClaimHistoryEventType.Reassigned, history.EventType);
+        Assert.Equal(ManagerId, history.ActingUserId);
+        Assert.Equal(reassignedAt, history.OccurredAt);
     }
 
     [Fact]
