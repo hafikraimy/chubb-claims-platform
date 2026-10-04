@@ -34,6 +34,8 @@ public static class ManagerWorkEndpoints
     {
         var managerTeamId = principal.GetTeamId();
         var managerMarket = principal.GetMarket();
+        var periodEnd = DateTimeOffset.UtcNow;
+        var periodStart = periodEnd.AddDays(-30);
 
         var officers = await dbContext.Users
             .AsNoTracking()
@@ -80,17 +82,33 @@ public static class ManagerWorkEndpoints
             .ToListAsync(cancellationToken);
 
         var workload = officers
-            .Select(officer => new OfficerWorkloadResponse(
-                officer.Id,
-                officer.Name,
-                openClaims.Count(claim =>
-                    claim.AssignedOfficerId == officer.Id),
-                openClaims.Count(claim =>
-                    claim.AssignedOfficerId == officer.Id &&
-                    claim.Status == ClaimStatus.InReview),
-                openClaims.Count(claim =>
-                    claim.AssignedOfficerId == officer.Id &&
-                    claim.Status == ClaimStatus.AwaitingInfo)))
+            .Select(officer =>
+            {
+                var officerClaims = openClaims
+                    .Where(claim =>
+                        claim.AssignedOfficerId == officer.Id)
+                    .ToArray();
+
+                var claimAges = officerClaims
+                    .Select(claim =>
+                        (decimal)(periodEnd - claim.SubmittedAt).TotalDays)
+                    .ToArray();
+
+                return new OfficerWorkloadResponse(
+                    officer.Id,
+                    officer.Name,
+                    officerClaims.Length,
+                    officerClaims.Count(claim =>
+                        claim.Status == ClaimStatus.InReview),
+                    officerClaims.Count(claim =>
+                        claim.Status == ClaimStatus.AwaitingInfo),
+                    claimAges.Length == 0
+                        ? null
+                        : decimal.Round(claimAges.Average(), 1),
+                    claimAges.Length == 0
+                        ? null
+                        : decimal.Round(claimAges.Max(), 1));
+            })
             .ToArray();
 
         var exposure = openClaims
@@ -103,10 +121,72 @@ public static class ManagerWorkEndpoints
                     claim.ReportedLossAmount)))
             .ToArray();
 
+        var completedClaims = await dbContext.Claims
+            .AsNoTracking()
+            .Where(claim =>
+                claim.Market == managerMarket &&
+                claim.AssignedOfficerId != null &&
+                officerIds.Contains(
+                    claim.AssignedOfficerId ?? Guid.Empty) &&
+                (claim.Status == ClaimStatus.Settled ||
+                 claim.Status == ClaimStatus.Rejected) &&
+                claim.UpdatedAt >= periodStart &&
+                claim.UpdatedAt <= periodEnd)
+            .Select(claim => new
+            {
+                OfficerId = claim.AssignedOfficerId!.Value,
+                claim.Status,
+                claim.SubmittedAt,
+                DecidedAt = claim.UpdatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        var officerPerformance = officers
+            .Select(officer =>
+            {
+                var decisions = completedClaims
+                    .Where(claim => claim.OfficerId == officer.Id)
+                    .ToArray();
+
+                var decisionHours = decisions
+                    .Select(claim =>
+                        (decimal)(claim.DecidedAt - claim.SubmittedAt)
+                        .TotalHours)
+                    .ToArray();
+
+                return new OfficerPerformanceResponse(
+                    officer.Id,
+                    officer.Name,
+                    decisions.Count(claim =>
+                        claim.Status == ClaimStatus.Settled),
+                    decisions.Count(claim =>
+                        claim.Status == ClaimStatus.Rejected),
+                    decisions.Length,
+                    decisionHours.Length == 0
+                        ? null
+                        : decimal.Round(decisionHours.Average(), 1));
+            })
+            .ToArray();
+
+        var allDecisionHours = completedClaims
+            .Select(claim =>
+                (decimal)(claim.DecidedAt - claim.SubmittedAt).TotalHours)
+            .ToArray();
+
+        var performance = new TeamPerformanceResponse(
+            periodStart,
+            periodEnd,
+            completedClaims.Count,
+            allDecisionHours.Length == 0
+                ? null
+                : decimal.Round(allDecisionHours.Average(), 1),
+            officerPerformance);
+
         return Results.Ok(new ManagerDashboardResponse(
             openClaims,
             workload,
-            exposure));
+            exposure,
+            performance));
     }
 
     private static async Task<IResult> AssignClaimAsync(

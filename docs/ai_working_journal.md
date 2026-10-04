@@ -171,3 +171,13 @@ manager screen the data needed to assign work without expanding the API.
 
 I kept historical performance metrics for a later slice so this change stays
 focused on assignment and current workload.
+
+## Completed manager performance metrics
+
+I extended the existing dashboard instead of adding another reporting
+endpoint. It now shows average and oldest open-claim age plus settlement and
+rejection counts and average decision time for the last 30 days.
+
+I kept settlement and rejection as factual counts. I did not turn their ratio
+into a quality score because the demo has no claim-complexity or correctness
+data.
