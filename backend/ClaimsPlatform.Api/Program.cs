@@ -7,6 +7,7 @@ using ClaimsPlatform.Api.Claims.Endpoints;
 using ClaimsPlatform.Api.Common.Errors;
 using ClaimsPlatform.Api.Infrastructure.Persistence;
 using ClaimsPlatform.Api.Infrastructure.Seeding;
+using ClaimsPlatform.Api.WorkManagement.Endpoints;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,5 +79,6 @@ app.UseAuthorization();
 
 app.MapAccessEndpoints();
 app.MapClaimantClaimEndpoints();
+app.MapOfficerWorkEndpoints();
 
 app.Run();

@@ -46,10 +46,18 @@ public class ApiExceptionHandler(
                 {
                     Status = statusCode,
                     Title = title,
-                    Detail = statusCode ==
-                        StatusCodes.Status500InternalServerError
-                            ? "An unexpected error occurred."
-                            : exception.Message
+                    Detail = exception switch
+                    {
+                        DbUpdateConcurrencyException =>
+                            "The resource was updated by another request. " +
+                            "Reload and try again.",
+
+                        _ when statusCode ==
+                            StatusCodes.Status500InternalServerError =>
+                            "An unexpected error occurred.",
+
+                        _ => exception.Message
+                    }
                 }
             });
     }

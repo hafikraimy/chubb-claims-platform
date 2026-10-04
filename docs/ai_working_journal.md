@@ -137,3 +137,7 @@ I questioned the manager relationship because `WithMany` was confusing. I chose 
 ## Kept final decisions on the claim
 
 I challenged the separate decision model because it duplicated claim status and claim decision status. I kept the decision reason and settlement amount on the claim.
+
+## Deferred integration tests
+
+AI suggested temporary PostgreSQL integration tests for the claimant API. I deferred them because time is running short. I manually verified the API against the Docker PostgreSQL database and will prioritise the remaining user workflow first.
