@@ -123,7 +123,7 @@
             <article class="request-card">
               <header>
                 <strong>{{ request.question }}</strong>
-                @if (request.response === null) {
+                @if (request.response === null && claim.status === ClaimStatus.AwaitingInfo) {
                   <span class="awaiting-label">Awaiting your response</span>
                 }
               </header>
@@ -141,6 +141,13 @@
                     </time>
                   }
                 </div>
+              } @else if (claim.status === ClaimStatus.AwaitingInfo) {
+                <app-information-response-form
+                  [claimId]="claim.id"
+                  [requestId]="request.id"
+                  (submitted)="loadClaim()"
+                  (refreshRequested)="loadClaim()"
+                />
               }
             </article>
           }

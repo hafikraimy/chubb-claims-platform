@@ -8,6 +8,7 @@ import { ClaimsApiService } from '../../../core/api/claims-api.service';
 import { LoadingIndicator } from '../../../shared/components/loading-indicator/loading-indicator';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
 import { ClaimDetail, ClaimStatus } from '../../../shared/models/claim.models';
+import { InformationResponseForm } from '../information-response-form/information-response-form';
 
 type ClaimDetailState =
   | { status: 'loading' }
@@ -17,7 +18,15 @@ type ClaimDetailState =
 
 @Component({
   selector: 'app-claim-detail-page',
-  imports: [CurrencyPipe, DatePipe, LoadingIndicator, MatButtonModule, RouterLink, StatusBadge],
+  imports: [
+    CurrencyPipe,
+    DatePipe,
+    InformationResponseForm,
+    LoadingIndicator,
+    MatButtonModule,
+    RouterLink,
+    StatusBadge,
+  ],
   templateUrl: './claim-detail-page.html',
   styleUrl: './claim-detail-page.scss',
 })

@@ -1,0 +1,43 @@
+<form class="response-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <mat-form-field appearance="outline">
+    <mat-label>Your response</mat-label>
+    <textarea
+      matInput
+      formControlName="response"
+      rows="5"
+      aria-describedby="response-guidance"
+    ></textarea>
+    <mat-hint id="response-guidance">
+      Provide the requested information clearly. Attachments are not supported in this demo.
+    </mat-hint>
+    <mat-hint align="end">{{ response.value.length }}/2000</mat-hint>
+    @if (response.touched && (response.hasError('required') || response.hasError('whitespace'))) {
+      <mat-error>Enter a response before submitting.</mat-error>
+    } @else if (response.hasError('maxlength')) {
+      <mat-error>Use 2,000 characters or fewer.</mat-error>
+    }
+    @if (serverError(); as error) {
+      <mat-error>{{ error }}</mat-error>
+    }
+  </mat-form-field>
+
+  @if (submissionError(); as message) {
+    <div class="response-error" role="alert">
+      <span>{{ message }}</span>
+      @if (conflict()) {
+        <button mat-button type="button" (click)="refreshRequested.emit()">Reload claim</button>
+      }
+    </div>
+  }
+
+  <div class="response-actions">
+    <button mat-flat-button type="submit" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-spinner diameter="18" aria-hidden="true" />
+        <span>Sending…</span>
+      } @else {
+        <span>Send response</span>
+      }
+    </button>
+  </div>
+</form>

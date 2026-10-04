@@ -110,6 +110,30 @@ describe('ClaimDetailPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Claim not found');
   });
 
+  it('shows a response form only for an open awaiting-information request', () => {
+    claimsApi.getClaim.mockReturnValue(
+      of({
+        ...claim,
+        status: ClaimStatus.AwaitingInfo,
+        decisionReason: null,
+        settlementAmount: null,
+        informationRequests: [
+          {
+            ...claim.informationRequests[0],
+            response: null,
+            respondedAt: null,
+          },
+        ],
+      }),
+    );
+
+    const fixture = TestBed.createComponent(ClaimDetailPage);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-information-response-form')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Awaiting your response');
+  });
+
   it('shows an error and retries the same claim', () => {
     const error = new ApiError(500, 'Failed', 'Please try later.', {}, null);
     claimsApi.getClaim.mockReturnValueOnce(throwError(() => error)).mockReturnValueOnce(of(claim));
