@@ -3,8 +3,13 @@ import { Routes } from '@angular/router';
 export const OFFICER_ROUTES: Routes = [
   {
     path: '',
-    title: 'Officer overview',
+    pathMatch: 'full',
+    redirectTo: 'queue',
+  },
+  {
+    path: 'queue',
+    title: 'Unassigned queue',
     loadComponent: () =>
-      import('./officer-home-page/officer-home-page').then((module) => module.OfficerHomePage),
+      import('./officer-queue-page/officer-queue-page').then((module) => module.OfficerQueuePage),
   },
 ];

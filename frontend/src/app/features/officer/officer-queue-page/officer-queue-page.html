@@ -1,0 +1,136 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Claims officer workspace</p>
+    <h1>Unassigned queue</h1>
+    <p>Pick up submitted claims from your market to begin assessment.</p>
+  </div>
+</header>
+
+@if (successMessage(); as message) {
+  <section class="message-card message-card--success" role="status">
+    <strong>Claim assigned</strong>
+    <p>{{ message }}</p>
+  </section>
+}
+
+@if (pickupError(); as error) {
+  <section class="message-card message-card--error" role="alert">
+    <strong>Claim could not be assigned</strong>
+    <p>{{ error.detail }}</p>
+    @if (error.status === 409) {
+      <button mat-stroked-button type="button" (click)="loadQueue()">Reload queue</button>
+    }
+  </section>
+}
+
+@let viewState = state();
+
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading unassigned claims…" />
+  }
+
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h2>We could not load the queue</h2>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadQueue()">Try again</button>
+    </section>
+  }
+
+  @case ('loaded') {
+    @if (viewState.claims.length === 0) {
+      <app-empty-state
+        title="Queue is clear"
+        message="There are no submitted, unassigned claims in your market right now."
+      />
+    } @else {
+      <div class="queue-table-wrapper">
+        <table class="queue-table">
+          <thead>
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Type</th>
+              <th scope="col">Incident</th>
+              <th scope="col">Reported loss</th>
+              <th scope="col">Submitted</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (claim of viewState.claims; track claim.id) {
+              <tr>
+                <td>
+                  <strong>{{ claim.referenceNumber }}</strong>
+                </td>
+                <td>{{ claim.type }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>{{ claim.reportedLossAmount | currency: claim.currency }}</td>
+                <td>{{ claim.submittedAt | date: 'd MMM y, HH:mm' : 'UTC' }}</td>
+                <td><app-status-badge [status]="claim.status" /></td>
+                <td class="queue-table__action">
+                  <button
+                    mat-flat-button
+                    type="button"
+                    [disabled]="pickingClaimId() !== null"
+                    (click)="assignToMe(claim)"
+                  >
+                    @if (pickingClaimId() === claim.id) {
+                      <mat-spinner diameter="18" aria-hidden="true" />
+                      Assigning…
+                    } @else {
+                      Assign to me
+                    }
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="queue-cards">
+        @for (claim of viewState.claims; track claim.id) {
+          <article class="queue-card">
+            <div class="queue-card__heading">
+              <strong>{{ claim.referenceNumber }}</strong>
+              <app-status-badge [status]="claim.status" />
+            </div>
+            <dl>
+              <div>
+                <dt>Type</dt>
+                <dd>{{ claim.type }}</dd>
+              </div>
+              <div>
+                <dt>Incident</dt>
+                <dd>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</dd>
+              </div>
+              <div>
+                <dt>Reported loss</dt>
+                <dd>{{ claim.reportedLossAmount | currency: claim.currency }}</dd>
+              </div>
+              <div>
+                <dt>Submitted</dt>
+                <dd>{{ claim.submittedAt | date: 'd MMM y, HH:mm' : 'UTC' }}</dd>
+              </div>
+            </dl>
+            <button
+              mat-flat-button
+              type="button"
+              [disabled]="pickingClaimId() !== null"
+              (click)="assignToMe(claim)"
+            >
+              @if (pickingClaimId() === claim.id) {
+                <mat-spinner diameter="18" aria-hidden="true" />
+                Assigning…
+              } @else {
+                Assign to me
+              }
+            </button>
+          </article>
+        }
+      </div>
+    }
+  }
+}
