@@ -4,6 +4,11 @@ namespace ClaimsPlatform.Api.Tests.Claims.Domain;
 
 public class ClaimTests
 {
+    private static readonly Guid OfficerId =
+        Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+    private static readonly Guid OtherOfficerId =
+        Guid.Parse("33333333-3333-3333-3333-333333333333");
     private static readonly Guid ClaimantId =
         Guid.Parse("11111111-1111-1111-1111-111111111111");
 
@@ -84,5 +89,96 @@ public class ClaimTests
                 submittedAt: SubmittedAt));
 
         Assert.Equal("reportedLossAmount", exception.ParamName);
+    }
+
+    [Fact]
+    public void AssignTo_SubmittedClaim_AssignsOfficerAndStartsReview()
+    {
+        var claim = CreateSubmittedClaim();
+        var assignedAt = SubmittedAt.AddHours(1);
+
+        claim.AssignTo(
+            officerId: OfficerId,
+            actingUserId: OfficerId,
+            assignedAt: assignedAt);
+
+        Assert.Equal(OfficerId, claim.AssignedOfficerId);
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Equal(assignedAt, claim.UpdatedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(ClaimHistoryEventType.Assigned, history.EventType);
+        Assert.Equal(OfficerId, history.ActingUserId);
+        Assert.Equal(assignedAt, history.OccurredAt);
+    }
+
+    [Fact]
+    public void RecordAssessedLoss_ByDifferentOfficer_ThrowsInvalidOperationException()
+    {
+        var claim = CreateSubmittedClaim();
+
+        claim.AssignTo(
+            officerId: OfficerId,
+            actingUserId: OfficerId,
+            assignedAt: SubmittedAt.AddHours(1));
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            claim.RecordAssessedLoss(
+                officerId: OtherOfficerId,
+                amount: 2_000m,
+                assessedAt: SubmittedAt.AddHours(2)));
+
+        Assert.Equal(
+            "Only the assigned officer can assess this claim.",
+            exception.Message);
+
+        Assert.Null(claim.AssessedLossAmount);
+    }
+
+    [Fact]
+    public void RecordAssessedLoss_ByAssignedOfficer_UpdatesAmount()
+    {
+        var claim = CreateSubmittedClaim();
+
+        claim.AssignTo(
+            officerId: OfficerId,
+            actingUserId: OfficerId,
+            assignedAt: SubmittedAt.AddHours(1));
+
+        var assessedAt = SubmittedAt.AddHours(2);
+
+        claim.RecordAssessedLoss(
+            officerId: OfficerId,
+            amount: 2_000m,
+            assessedAt: assessedAt);
+
+        Assert.Equal(2_000m, claim.AssessedLossAmount);
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Equal(assessedAt, claim.UpdatedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(
+            ClaimHistoryEventType.AssessedLossUpdated,
+            history.EventType);
+
+        Assert.Equal(OfficerId, history.ActingUserId);
+        Assert.Equal(assessedAt, history.OccurredAt);
+    }
+
+    private static Claim CreateSubmittedClaim()
+    {
+        return Claim.Submit(
+            claimantId: ClaimantId,
+            type: ClaimType.Motor,
+            policyNumber: "POL-10001",
+            market: "MY",
+            currency: "MYR",
+            incidentDate: new DateOnly(2026, 10, 2),
+            incidentLocation: "Kuala Lumpur",
+            description: "Rear bumper damaged in a collision.",
+            reportedLossAmount: 2_500m,
+            submittedAt: SubmittedAt);
     }
 }

@@ -134,4 +134,94 @@ public class Claim
             reportedLossAmount: reportedLossAmount,
             submittedAt: submittedAt);
     }
+
+    public void AssignTo(
+        Guid officerId,
+        Guid actingUserId,
+        DateTimeOffset assignedAt)
+    {
+        if (officerId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "An officer Id is required.",
+                nameof(officerId)
+            );
+        }
+
+        if (actingUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "An acting user ID is required.",
+                nameof(actingUserId));
+        }
+
+        if (Status is ClaimStatus.Settled or ClaimStatus.Rejected)
+        {
+            throw new InvalidOperationException(
+                "A completed claim cannot be assigned.");
+        }
+
+        if (AssignedOfficerId == officerId)
+        {
+            throw new InvalidOperationException(
+                "The claim is already assigned to this officer.");
+        }
+
+        var eventType = AssignedOfficerId is null
+        ? ClaimHistoryEventType.Assigned
+        : ClaimHistoryEventType.Reassigned;
+
+        AssignedOfficerId = officerId;
+
+        if (Status == ClaimStatus.Submitted)
+        {
+            Status = ClaimStatus.InReview;
+        }
+
+        UpdatedAt = assignedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: actingUserId,
+            eventType: eventType,
+            description: eventType == ClaimHistoryEventType.Assigned
+                ? "Claim assigned to an officer."
+                : "Claim reassigned to another officer.",
+            occurredAt: assignedAt));
+    }
+
+    public void RecordAssessedLoss(
+        Guid officerId,
+        decimal amount,
+        DateTimeOffset assessedAt)
+    {
+        if (AssignedOfficerId != officerId)
+        {
+            throw new InvalidOperationException(
+                "Only the assigned officer can assess this claim.");
+        }
+
+        if (Status != ClaimStatus.InReview)
+        {
+            throw new InvalidOperationException(
+                "Only a claim in review can be assessed.");
+        }
+
+        if (amount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(amount),
+                "Assessed loss amount must be greater than zero.");
+        }
+
+        AssessedLossAmount = amount;
+        UpdatedAt = assessedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: officerId,
+            eventType: ClaimHistoryEventType.AssessedLossUpdated,
+            description: "Assessed loss amount updated.",
+            occurredAt: assessedAt));
+    }
 }
