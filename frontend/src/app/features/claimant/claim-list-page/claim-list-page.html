@@ -1,7 +1,10 @@
 <header class="page-header">
-  <p class="eyebrow">Claimant workspace</p>
-  <h1>My claims</h1>
-  <p>Track submitted incidents, information requests, and final decisions.</p>
+  <div>
+    <p class="eyebrow">Claimant workspace</p>
+    <h1>My claims</h1>
+    <p>Track submitted incidents, information requests, and final decisions.</p>
+  </div>
+  <a mat-flat-button routerLink="/claimant/claims/new">Report an incident</a>
 </header>
 
 @let viewState = state();
@@ -25,7 +28,7 @@
         title="No claims yet"
         message="Claims you report will appear here with their current status."
       >
-        <p class="next-step">Incident reporting is the next claimant feature.</p>
+        <a mat-flat-button routerLink="/claimant/claims/new">Report an incident</a>
       </app-empty-state>
     } @else {
       <div class="claim-table-wrapper">

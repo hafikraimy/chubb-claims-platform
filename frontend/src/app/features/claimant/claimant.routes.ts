@@ -13,6 +13,12 @@ export const CLAIMANT_ROUTES: Routes = [
       import('./claim-list-page/claim-list-page').then((module) => module.ClaimListPage),
   },
   {
+    path: 'claims/new',
+    title: 'Report an incident',
+    loadComponent: () =>
+      import('./submit-claim-page/submit-claim-page').then((module) => module.SubmitClaimPage),
+  },
+  {
     path: 'claims/:id',
     title: 'Claim details',
     loadComponent: () =>

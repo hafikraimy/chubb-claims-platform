@@ -1,0 +1,183 @@
+<a class="back-link" routerLink="/claimant/claims">← Back to my claims</a>
+
+<header class="page-header">
+  <p class="eyebrow">New claim</p>
+  <h1>Report an incident</h1>
+  <p>
+    Tell us what happened and provide your current estimate of the loss. A claims officer can update
+    the assessed amount during review.
+  </p>
+</header>
+
+@if (submissionError(); as message) {
+  <div class="submission-error" role="alert">
+    <strong>We could not submit your claim.</strong>
+    <span>{{ message }}</span>
+  </div>
+}
+
+<form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <section class="form-section" aria-labelledby="claim-details-title">
+    <div class="section-heading">
+      <span>1</span>
+      <div>
+        <h2 id="claim-details-title">Claim details</h2>
+        <p>Choose the claim type and enter the policy information.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Claim type</mat-label>
+        <mat-select formControlName="type">
+          <mat-option [value]="ClaimType.Motor">Motor</mat-option>
+          <mat-option [value]="ClaimType.Property">Property</mat-option>
+        </mat-select>
+        @if (form.controls.type.touched && form.controls.type.hasError('required')) {
+          <mat-error>Select a claim type.</mat-error>
+        }
+        @if (serverError(form.controls.type); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Policy number</mat-label>
+        <input matInput formControlName="policyNumber" autocomplete="off" />
+        <mat-hint align="end"> {{ form.controls.policyNumber.value.length }}/50 </mat-hint>
+        @if (
+          form.controls.policyNumber.touched &&
+          (form.controls.policyNumber.hasError('required') ||
+            form.controls.policyNumber.hasError('whitespace'))
+        ) {
+          <mat-error>Enter the policy number.</mat-error>
+        } @else if (form.controls.policyNumber.hasError('maxlength')) {
+          <mat-error>Use 50 characters or fewer.</mat-error>
+        }
+        @if (serverError(form.controls.policyNumber); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Currency</mat-label>
+        <input
+          matInput
+          formControlName="currency"
+          maxlength="3"
+          autocomplete="off"
+          class="uppercase-input"
+        />
+        <mat-hint>Three-letter ISO code</mat-hint>
+        @if (form.controls.currency.touched && form.controls.currency.invalid) {
+          <mat-error>Enter a three-letter currency code.</mat-error>
+        }
+        @if (serverError(form.controls.currency); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="incident-title">
+    <div class="section-heading">
+      <span>2</span>
+      <div>
+        <h2 id="incident-title">Incident</h2>
+        <p>Provide the date, location, and a clear description.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Incident date</mat-label>
+        <input matInput type="date" formControlName="incidentDate" [max]="maxIncidentDate" />
+        @if (
+          form.controls.incidentDate.touched && form.controls.incidentDate.hasError('required')
+        ) {
+          <mat-error>Enter the incident date.</mat-error>
+        } @else if (form.controls.incidentDate.hasError('futureDate')) {
+          <mat-error>The incident date cannot be in the future.</mat-error>
+        }
+        @if (serverError(form.controls.incidentDate); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="wide-field">
+        <mat-label>Incident location</mat-label>
+        <input matInput formControlName="incidentLocation" autocomplete="street-address" />
+        <mat-hint align="end"> {{ form.controls.incidentLocation.value.length }}/200 </mat-hint>
+        @if (
+          form.controls.incidentLocation.touched &&
+          (form.controls.incidentLocation.hasError('required') ||
+            form.controls.incidentLocation.hasError('whitespace'))
+        ) {
+          <mat-error>Enter the incident location.</mat-error>
+        } @else if (form.controls.incidentLocation.hasError('maxlength')) {
+          <mat-error>Use 200 characters or fewer.</mat-error>
+        }
+        @if (serverError(form.controls.incidentLocation); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea matInput formControlName="description" rows="6"></textarea>
+        <mat-hint align="end"> {{ form.controls.description.value.length }}/2000 </mat-hint>
+        @if (
+          form.controls.description.touched &&
+          (form.controls.description.hasError('required') ||
+            form.controls.description.hasError('whitespace'))
+        ) {
+          <mat-error>Describe what happened.</mat-error>
+        } @else if (form.controls.description.hasError('maxlength')) {
+          <mat-error>Use 2,000 characters or fewer.</mat-error>
+        }
+        @if (serverError(form.controls.description); as error) {
+          <mat-error>{{ error }}</mat-error>
+        }
+      </mat-form-field>
+    </div>
+  </section>
+
+  <section class="form-section" aria-labelledby="loss-title">
+    <div class="section-heading">
+      <span>3</span>
+      <div>
+        <h2 id="loss-title">Reported loss</h2>
+        <p>Enter your current estimate. This is not a settlement amount.</p>
+      </div>
+    </div>
+
+    <mat-form-field appearance="outline" class="amount-field">
+      <mat-label>Estimated amount</mat-label>
+      <input matInput type="number" formControlName="reportedLossAmount" min="0.01" step="0.01" />
+      <span matTextPrefix>{{ form.controls.currency.value.toUpperCase() }}&nbsp;</span>
+      @if (
+        form.controls.reportedLossAmount.touched &&
+        form.controls.reportedLossAmount.hasError('required')
+      ) {
+        <mat-error>Enter the reported loss amount.</mat-error>
+      } @else if (form.controls.reportedLossAmount.hasError('min')) {
+        <mat-error>The amount must be greater than zero.</mat-error>
+      }
+      @if (serverError(form.controls.reportedLossAmount); as error) {
+        <mat-error>{{ error }}</mat-error>
+      }
+    </mat-form-field>
+  </section>
+
+  <div class="form-actions">
+    <a mat-button routerLink="/claimant/claims">Cancel</a>
+    <button mat-flat-button type="submit" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-spinner diameter="18" aria-hidden="true" />
+        <span>Submitting…</span>
+      } @else {
+        <span>Submit claim</span>
+      }
+    </button>
+  </div>
+</form>
