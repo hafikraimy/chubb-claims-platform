@@ -107,5 +107,14 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
 
         builder.Navigation(claim => claim.History)
             .UsePropertyAccessMode(PropertyAccessMode.Field);
+    
+        builder.HasMany(claim => claim.InformationRequests)
+            .WithOne()
+            .HasForeignKey(request => request.ClaimId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(claim => claim.InformationRequests)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
+    
     }
 }

@@ -3,6 +3,7 @@ namespace ClaimsPlatform.Api.Claims.Domain;
 public class Claim
 {
     private readonly List<ClaimHistory> _history = [];
+    private readonly List<InformationRequest> _informationRequests = [];
     private Claim()
     {
     }
@@ -74,6 +75,8 @@ public class Claim
     public DateTimeOffset UpdatedAt { get; private set; }
 
     public IReadOnlyCollection<ClaimHistory> History => _history;
+
+    public IReadOnlyCollection<InformationRequest> InformationRequests => _informationRequests;
 
     public static Claim Submit(
         Guid claimantId,
@@ -223,5 +226,93 @@ public class Claim
             eventType: ClaimHistoryEventType.AssessedLossUpdated,
             description: "Assessed loss amount updated.",
             occurredAt: assessedAt));
+    }
+
+    public Guid RequestInformation(
+        Guid officerId,
+        string question,
+        DateTimeOffset requestedAt)
+    {
+        if (AssignedOfficerId != officerId)
+        {
+            throw new InvalidOperationException(
+                "Only the assigned officer can request information.");
+        }
+
+        if (Status != ClaimStatus.InReview)
+        {
+            throw new InvalidOperationException(
+                "Information can only be requested for a claim in review.");
+        }
+
+        if (_informationRequests.Any(request => request.IsOpen))
+        {
+            throw new InvalidOperationException(
+                "The claim already has an open information request.");
+        }
+
+        var informationRequest = InformationRequest.Create(
+            claimId: Id,
+            requestedByOfficerId: officerId,
+            question: question,
+            requestedAt: requestedAt);
+
+        _informationRequests.Add(informationRequest);
+
+        Status = ClaimStatus.AwaitingInfo;
+        UpdatedAt = requestedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: officerId,
+            eventType: ClaimHistoryEventType.InformationRequested,
+            description: "Additional information requested.",
+            occurredAt: requestedAt));
+
+        return informationRequest.Id;
+    }
+
+    public void RespondToInformationRequest(
+        Guid claimantId,
+        Guid requestId,
+        string response,
+        DateTimeOffset respondedAt)
+    {
+        if (ClaimantId != claimantId)
+        {
+            throw new InvalidOperationException(
+                "Only the owning claimant can provide information.");
+        }
+
+        if (Status != ClaimStatus.AwaitingInfo)
+        {
+            throw new InvalidOperationException(
+                "This claim is not awaiting information.");
+        }
+
+        var informationRequest = _informationRequests
+            .SingleOrDefault(request =>
+                request.Id == requestId &&
+                request.IsOpen);
+
+        if (informationRequest is null)
+        {
+            throw new InvalidOperationException(
+                "The open information request was not found.");
+        }
+
+        informationRequest.Respond(
+            response: response,
+            respondedAt: respondedAt);
+
+        Status = ClaimStatus.InReview;
+        UpdatedAt = respondedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: claimantId,
+            eventType: ClaimHistoryEventType.InformationProvided,
+            description: "Additional information provided.",
+            occurredAt: respondedAt));
     }
 }

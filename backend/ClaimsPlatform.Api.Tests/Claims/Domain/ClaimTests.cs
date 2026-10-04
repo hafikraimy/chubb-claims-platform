@@ -167,6 +167,96 @@ public class ClaimTests
         Assert.Equal(assessedAt, history.OccurredAt);
     }
 
+    [Fact]
+    public void RequestInformation_ByAssignedOfficer_MovesClaimToAwaitingInfo()
+    {
+        var claim = CreateInReviewClaim();
+        var requestedAt = SubmittedAt.AddHours(2);
+
+        var requestId = claim.RequestInformation(
+            officerId: OfficerId,
+            question: "Please provide the police report reference.",
+            requestedAt: requestedAt);
+
+        Assert.NotEqual(Guid.Empty, requestId);
+        Assert.Equal(ClaimStatus.AwaitingInfo, claim.Status);
+        Assert.Equal(requestedAt, claim.UpdatedAt);
+
+        var request = Assert.Single(claim.InformationRequests);
+
+        Assert.Equal(requestId, request.Id);
+        Assert.True(request.IsOpen);
+        Assert.Null(request.Response);
+        Assert.Equal(
+            "Please provide the police report reference.",
+            request.Question);
+    }
+
+    [Fact]
+    public void RespondToInformationRequest_ByOwningClaimant_ReturnsClaimToReview()
+    {
+        var claim = CreateInReviewClaim();
+
+        var requestId = claim.RequestInformation(
+            officerId: OfficerId,
+            question: "Please provide the police report reference.",
+            requestedAt: SubmittedAt.AddHours(2));
+
+        var respondedAt = SubmittedAt.AddHours(3);
+
+        claim.RespondToInformationRequest(
+            claimantId: ClaimantId,
+            requestId: requestId,
+            response: "The police report reference is PR-12345.",
+            respondedAt: respondedAt);
+
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+        Assert.Equal(respondedAt, claim.UpdatedAt);
+
+        var request = Assert.Single(claim.InformationRequests);
+
+        Assert.False(request.IsOpen);
+        Assert.Equal(
+            "The police report reference is PR-12345.",
+            request.Response);
+        Assert.Equal(respondedAt, request.RespondedAt);
+
+        var history = claim.History.Last();
+
+        Assert.Equal(
+            ClaimHistoryEventType.InformationProvided,
+            history.EventType);
+        Assert.Equal(ClaimantId, history.ActingUserId);
+    }
+
+    [Fact]
+    public void RespondToInformationRequest_ByDifferentClaimant_ThrowsInvalidOperationException()
+    {
+        var claim = CreateInReviewClaim();
+
+        var requestId = claim.RequestInformation(
+            officerId: OfficerId,
+            question: "Please provide the police report reference.",
+            requestedAt: SubmittedAt.AddHours(2));
+
+        var otherClaimantId =
+            Guid.Parse("44444444-4444-4444-4444-444444444444");
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            claim.RespondToInformationRequest(
+                claimantId: otherClaimantId,
+                requestId: requestId,
+                response: "Attempted response.",
+                respondedAt: SubmittedAt.AddHours(3)));
+
+        Assert.Equal(
+            "Only the owning claimant can provide information.",
+            exception.Message);
+
+        Assert.Equal(ClaimStatus.AwaitingInfo, claim.Status);
+        Assert.True(claim.InformationRequests.Single().IsOpen);
+    }
+
     private static Claim CreateSubmittedClaim()
     {
         return Claim.Submit(
@@ -180,5 +270,17 @@ public class ClaimTests
             description: "Rear bumper damaged in a collision.",
             reportedLossAmount: 2_500m,
             submittedAt: SubmittedAt);
+    }
+
+    private static Claim CreateInReviewClaim()
+    {
+        var claim = CreateSubmittedClaim();
+
+        claim.AssignTo(
+            officerId: OfficerId,
+            actingUserId: OfficerId,
+            assignedAt: SubmittedAt.AddHours(1));
+
+        return claim;
     }
 }
