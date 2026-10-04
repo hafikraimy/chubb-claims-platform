@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using ClaimsPlatform.Api.Access.Authentication;
 using ClaimsPlatform.Api.Access.Authorization;
+using ClaimsPlatform.Api.Access.Domain;
 using ClaimsPlatform.Api.Claims.Domain;
 using ClaimsPlatform.Api.Infrastructure.Persistence;
 using ClaimsPlatform.Api.WorkManagement.Dtos;
@@ -19,6 +20,7 @@ public static class OfficerWorkEndpoints
 
         workGroup.MapGet("/queue", GetQueueAsync);
         workGroup.MapGet("/my-claims", GetMyClaimsAsync);
+        workGroup.MapGet("/team-summary", GetTeamSummaryAsync);
 
         endpoints.MapPost(
                 "/api/claims/{claimId:guid}/assign-to-me",
@@ -58,6 +60,146 @@ public static class OfficerWorkEndpoints
             .ToListAsync(cancellationToken);
 
         return Results.Ok(claims);
+    }
+
+    private static async Task<IResult> GetTeamSummaryAsync(
+        ClaimsPrincipal principal,
+        ClaimsDbContext dbContext,
+        CancellationToken cancellationToken)
+    {
+        var teamId = principal.GetTeamId();
+        var market = principal.GetMarket();
+        var periodEnd = DateTimeOffset.UtcNow;
+        var periodStart = periodEnd.AddDays(-30);
+
+        var officers = await dbContext.Users
+            .AsNoTracking()
+            .Where(user =>
+                user.Role == UserRole.ClaimsOfficer &&
+                user.TeamId == teamId &&
+                user.Market == market)
+            .OrderBy(user => user.Name)
+            .Select(user => new
+            {
+                user.Id,
+                user.Name
+            })
+            .ToListAsync(cancellationToken);
+
+        var officerIds = officers
+            .Select(officer => officer.Id)
+            .ToArray();
+
+        var openClaims = await dbContext.Claims
+            .AsNoTracking()
+            .Where(claim =>
+                claim.Market == market &&
+                claim.AssignedOfficerId != null &&
+                officerIds.Contains(
+                    claim.AssignedOfficerId ?? Guid.Empty) &&
+                claim.Status != ClaimStatus.Settled &&
+                claim.Status != ClaimStatus.Rejected)
+            .Select(claim => new
+            {
+                OfficerId = claim.AssignedOfficerId!.Value,
+                claim.Status,
+                claim.SubmittedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        var workload = officers
+            .Select(officer =>
+            {
+                var officerClaims = openClaims
+                    .Where(claim => claim.OfficerId == officer.Id)
+                    .ToArray();
+
+                var claimAges = officerClaims
+                    .Select(claim =>
+                        (decimal)(periodEnd - claim.SubmittedAt).TotalDays)
+                    .ToArray();
+
+                return new OfficerWorkloadResponse(
+                    officer.Id,
+                    officer.Name,
+                    officerClaims.Length,
+                    officerClaims.Count(claim =>
+                        claim.Status == ClaimStatus.InReview),
+                    officerClaims.Count(claim =>
+                        claim.Status == ClaimStatus.AwaitingInfo),
+                    claimAges.Length == 0
+                        ? null
+                        : decimal.Round(claimAges.Average(), 1),
+                    claimAges.Length == 0
+                        ? null
+                        : decimal.Round(claimAges.Max(), 1));
+            })
+            .ToArray();
+
+        var completedClaims = await dbContext.Claims
+            .AsNoTracking()
+            .Where(claim =>
+                claim.Market == market &&
+                claim.AssignedOfficerId != null &&
+                officerIds.Contains(
+                    claim.AssignedOfficerId ?? Guid.Empty) &&
+                (claim.Status == ClaimStatus.Settled ||
+                 claim.Status == ClaimStatus.Rejected) &&
+                claim.UpdatedAt >= periodStart &&
+                claim.UpdatedAt <= periodEnd)
+            .Select(claim => new
+            {
+                OfficerId = claim.AssignedOfficerId!.Value,
+                claim.Status,
+                claim.SubmittedAt,
+                DecidedAt = claim.UpdatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        var officerPerformance = officers
+            .Select(officer =>
+            {
+                var decisions = completedClaims
+                    .Where(claim => claim.OfficerId == officer.Id)
+                    .ToArray();
+
+                var decisionHours = decisions
+                    .Select(claim =>
+                        (decimal)(claim.DecidedAt - claim.SubmittedAt)
+                        .TotalHours)
+                    .ToArray();
+
+                return new OfficerPerformanceResponse(
+                    officer.Id,
+                    officer.Name,
+                    decisions.Count(claim =>
+                        claim.Status == ClaimStatus.Settled),
+                    decisions.Count(claim =>
+                        claim.Status == ClaimStatus.Rejected),
+                    decisions.Length,
+                    decisionHours.Length == 0
+                        ? null
+                        : decimal.Round(decisionHours.Average(), 1));
+            })
+            .ToArray();
+
+        var allDecisionHours = completedClaims
+            .Select(claim =>
+                (decimal)(claim.DecidedAt - claim.SubmittedAt).TotalHours)
+            .ToArray();
+
+        var performance = new TeamPerformanceResponse(
+            periodStart,
+            periodEnd,
+            completedClaims.Count,
+            allDecisionHours.Length == 0
+                ? null
+                : decimal.Round(allDecisionHours.Average(), 1),
+            officerPerformance);
+
+        return Results.Ok(new TeamSummaryResponse(
+            workload,
+            performance));
     }
 
     private static async Task<IResult> GetMyClaimsAsync(

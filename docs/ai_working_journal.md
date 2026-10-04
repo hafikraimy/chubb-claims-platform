@@ -181,3 +181,12 @@ rejection counts and average decision time for the last 30 days.
 I kept settlement and rejection as factual counts. I did not turn their ratio
 into a quality score because the demo has no claim-complexity or correctness
 data.
+
+## Added the officer team summary
+
+I added a read-only team summary for claims officers. It uses the same workload
+and 30-day performance definitions as the manager dashboard, but it does not
+expose manager claims, exposure, or assignment actions.
+
+I kept the query in the officer endpoint for now. A shared reporting service
+would add more structure than this small MVP needs.
