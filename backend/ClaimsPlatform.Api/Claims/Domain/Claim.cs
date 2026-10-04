@@ -2,6 +2,7 @@ namespace ClaimsPlatform.Api.Claims.Domain;
 
 public class Claim
 {
+    private readonly List<ClaimHistory> _history = [];
     private Claim()
     {
     }
@@ -32,6 +33,14 @@ public class Claim
         Status = ClaimStatus.Submitted;
         SubmittedAt = submittedAt;
         UpdatedAt = submittedAt;
+
+        _history.Add(ClaimHistory.Record(
+            claimId: Id,
+            actingUserId: ClaimantId,
+            eventType: ClaimHistoryEventType.Submitted,
+            description: "Claim submitted.",
+            occurredAt: SubmittedAt)
+        );
     }
 
     public Guid Id { get; private set; }
@@ -63,6 +72,8 @@ public class Claim
     public DateTimeOffset SubmittedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
+
+    public IReadOnlyCollection<ClaimHistory> History => _history;
 
     public static Claim Submit(
         Guid claimantId,

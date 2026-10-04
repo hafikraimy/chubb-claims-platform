@@ -37,6 +37,13 @@ public class ClaimTests
         Assert.Null(claim.AssignedOfficerId);
         Assert.Equal(SubmittedAt, claim.SubmittedAt);
         Assert.Equal(SubmittedAt, claim.UpdatedAt);
+    
+        var history = Assert.Single(claim.History);
+
+        Assert.Equal(ClaimHistoryEventType.Submitted, history.EventType);
+        Assert.Equal(ClaimantId, history.ActingUserId);
+        Assert.Equal("Claim submitted.", history.Description);
+        Assert.Equal(SubmittedAt, history.OccurredAt);
     }
 
     [Fact]

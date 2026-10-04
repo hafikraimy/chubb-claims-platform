@@ -99,5 +99,13 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
             .WithMany()
             .HasForeignKey(claim => claim.AssignedOfficerId)
             .OnDelete(DeleteBehavior.Restrict);
+    
+        builder.HasMany(claim => claim.History)
+            .WithOne()
+            .HasForeignKey(history => history.ClaimId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Navigation(claim => claim.History)
+            .UsePropertyAccessMode(PropertyAccessMode.Field);
     }
 }
