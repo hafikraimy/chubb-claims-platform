@@ -266,6 +266,14 @@ is the source of truth for the frontend contract. The Angular application uses
 a small typed API service; client generation is optional if setting it up costs
 more time than it saves.
 
+Claim detail is one resource at `GET /api/claims/{claimId}` and uses the same
+response contract for every role. Authorization filters the resource by the
+current identity: a claimant can see their own claims, an officer can see their
+assigned claims and eligible unassigned queue claims, and a manager can see
+unassigned claims in their market plus claims assigned to officers in their
+team. Role-specific capabilities such as responding, assessing, deciding, and
+assigning remain separate command endpoints.
+
 Claims processing is asynchronous in the business sense, not as one long HTTP
 request. Each user action is a short synchronous request that persists a new
 state. Later users load or refresh that state through REST. Manual refresh or

@@ -78,6 +78,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAccessEndpoints();
+app.MapClaimQueryEndpoints();
 app.MapClaimantClaimEndpoints();
 app.MapOfficerClaimEndpoints();
 app.MapOfficerWorkEndpoints();

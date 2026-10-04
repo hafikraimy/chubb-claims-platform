@@ -141,3 +141,15 @@ I challenged the separate decision model because it duplicated claim status and 
 ## Deferred integration tests
 
 AI suggested temporary PostgreSQL integration tests for the claimant API. I deferred them because time is running short. I manually verified the API against the Docker PostgreSQL database and will prioritise the remaining user workflow first.
+
+## Unified claim detail
+
+I questioned why claimant, officer, and manager detail views needed different
+endpoints when they return the same claim data. AI suggested treating claim
+detail as one resource and keeping role differences in authorization and
+commands. I accepted this.
+
+`GET /api/claims/{claimId}` is shared. Claimants see their own claims, officers
+see assigned and eligible queue claims, and managers see their market's
+unassigned claims and claims assigned to their team. Assignment and workflow
+actions stay role-specific.

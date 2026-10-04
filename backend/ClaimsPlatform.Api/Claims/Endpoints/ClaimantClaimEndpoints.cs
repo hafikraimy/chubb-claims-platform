@@ -18,7 +18,6 @@ public static class ClaimantClaimEndpoints
 
         group.MapPost("/", SubmitClaimAsync);
         group.MapGet("/", GetClaimsAsync);
-        group.MapGet("/{claimId:guid}", GetClaimAsync);
         group.MapPost(
             "/{claimId:guid}/information-requests/{requestId:guid}/response",
             RespondToInformationRequestAsync);
@@ -78,33 +77,6 @@ public static class ClaimantClaimEndpoints
             .ToListAsync(cancellationToken);
 
         return Results.Ok(claims);
-    }
-
-    private static async Task<IResult> GetClaimAsync(
-        Guid claimId,
-        ClaimsPrincipal principal,
-        ClaimsDbContext dbContext,
-        CancellationToken cancellationToken)
-    {
-        var claimantId = principal.GetUserId();
-
-        var claim = await dbContext.Claims
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(candidate => candidate.InformationRequests)
-            .Include(candidate => candidate.History)
-            .SingleOrDefaultAsync(
-                candidate =>
-                    candidate.Id == claimId &&
-                    candidate.ClaimantId == claimantId,
-                cancellationToken);
-
-        if (claim is null)
-        {
-            return Results.NotFound();
-        }
-
-        return Results.Ok(claim.ToDetailResponse());
     }
 
     private static async Task<IResult> RespondToInformationRequestAsync(

@@ -12,11 +12,6 @@ public static class OfficerClaimEndpoints
     public static IEndpointRouteBuilder MapOfficerClaimEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet(
-                "/api/work/claims/{claimId:guid}",
-                GetClaimAsync)
-            .RequireAuthorization(AccessPolicies.ClaimsOfficer);
-
         var commandGroup = endpoints.MapGroup("/api/claims/{claimId:guid}")
             .RequireAuthorization(AccessPolicies.ClaimsOfficer);
 
@@ -28,30 +23,6 @@ public static class OfficerClaimEndpoints
         commandGroup.MapPost("/reject", RejectClaimAsync);
 
         return endpoints;
-    }
-
-    private static async Task<IResult> GetClaimAsync(
-        Guid claimId,
-        ClaimsPrincipal principal,
-        ClaimsDbContext dbContext,
-        CancellationToken cancellationToken)
-    {
-        var officerId = principal.GetUserId();
-
-        var claim = await dbContext.Claims
-            .AsNoTracking()
-            .AsSplitQuery()
-            .Include(candidate => candidate.InformationRequests)
-            .Include(candidate => candidate.History)
-            .SingleOrDefaultAsync(
-                candidate =>
-                    candidate.Id == claimId &&
-                    candidate.AssignedOfficerId == officerId,
-                cancellationToken);
-
-        return claim is null
-            ? Results.NotFound()
-            : Results.Ok(claim.ToDetailResponse());
     }
 
     private static async Task<IResult> RecordAssessedLossAsync(

@@ -20,4 +20,14 @@ public static class ClaimsPrincipalExtensions
             ?? throw new InvalidOperationException(
                 "The authenticated user market is missing.");
     }
+
+    public static Guid GetTeamId(this ClaimsPrincipal principal)
+    {
+        var value = principal.FindFirst(
+                DemoAuthenticationDefaults.TeamIdClaimType)?.Value
+            ?? throw new InvalidOperationException(
+                "The authenticated user's team ID is missing.");
+
+        return Guid.Parse(value);
+    }
 }
