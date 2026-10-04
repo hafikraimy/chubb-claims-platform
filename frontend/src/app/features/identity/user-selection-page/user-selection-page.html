@@ -1,0 +1,64 @@
+<main class="identity-page">
+  <section class="identity-panel" aria-labelledby="identity-title">
+    <header class="identity-header">
+      <div class="brand-mark" aria-hidden="true">C</div>
+      <p class="eyebrow">Chubb Claims</p>
+      <h1 id="identity-title">Choose a demo experience</h1>
+      <p class="introduction">
+        Select a role to explore the claims workflow. No password is required in this development
+        environment.
+      </p>
+    </header>
+
+    @if (currentUser(); as user) {
+      <div class="session-confirmation" role="status">
+        Signed in as <strong>{{ user.name }}</strong>
+        <span>{{ user.role }} · {{ user.market }}</span>
+      </div>
+    }
+
+    @if (errorMessage(); as message) {
+      <div class="error-message" role="alert">{{ message }}</div>
+    }
+
+    <div class="user-grid">
+      @for (user of users; track user.id) {
+        <mat-card appearance="outlined" class="user-card">
+          <mat-card-header>
+            <div mat-card-avatar class="user-avatar" aria-hidden="true">
+              {{ user.initials }}
+            </div>
+            <mat-card-title>{{ user.name }}</mat-card-title>
+            <mat-card-subtitle> {{ user.roleLabel }} · Malaysia </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <p>{{ user.description }}</p>
+          </mat-card-content>
+
+          <mat-card-actions align="end">
+            <button
+              mat-flat-button
+              type="button"
+              [disabled]="isSelecting()"
+              [attr.aria-label]="'Continue as ' + user.name"
+              (click)="selectUser(user.id)"
+            >
+              @if (selectingUserId() === user.id) {
+                <mat-spinner diameter="18" aria-label="Starting session" />
+                <span>Starting…</span>
+              } @else {
+                <span>Continue</span>
+              }
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+
+    <p class="demo-note">
+      Demo identity is stored only in this browser and sent using
+      <code>X-Demo-User</code>.
+    </p>
+  </section>
+</main>
