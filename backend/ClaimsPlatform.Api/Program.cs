@@ -79,6 +79,7 @@ app.UseAuthorization();
 
 app.MapAccessEndpoints();
 app.MapClaimantClaimEndpoints();
+app.MapOfficerClaimEndpoints();
 app.MapOfficerWorkEndpoints();
 
 app.Run();
