@@ -1,5 +1,10 @@
+using ClaimsPlatform.Api.Access.Authentication;
+using ClaimsPlatform.Api.Access.Authorization;
+using ClaimsPlatform.Api.Access.Domain;
+using ClaimsPlatform.Api.Access.Endpoints;
 using ClaimsPlatform.Api.Infrastructure.Persistence;
 using ClaimsPlatform.Api.Infrastructure.Seeding;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +16,27 @@ var connectionString = builder.Configuration.GetConnectionString("ClaimsDatabase
 
 builder.Services.AddDbContext<ClaimsDbContext>(options => 
     options.UseNpgsql(connectionString)); 
+
+builder.Services
+    .AddAuthentication(DemoAuthenticationDefaults.Scheme)
+    .AddScheme<AuthenticationSchemeOptions, DemoAuthenticationHandler>(
+        DemoAuthenticationDefaults.Scheme,
+        _ => { });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(
+        AccessPolicies.Claimant,
+        policy => policy.RequireRole(UserRole.Claimant.ToString()));
+
+    options.AddPolicy(
+        AccessPolicies.ClaimsOfficer,
+        policy => policy.RequireRole(UserRole.ClaimsOfficer.ToString()));
+
+    options.AddPolicy(
+        AccessPolicies.Manager,
+        policy => policy.RequireRole(UserRole.Manager.ToString()));
+});
 
 
 // Add services to the container.
@@ -34,5 +60,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapAccessEndpoints();
 
 app.Run();
