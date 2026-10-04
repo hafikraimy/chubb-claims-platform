@@ -1,0 +1,174 @@
+<a class="back-link" routerLink="/claimant/claims">← Back to my claims</a>
+
+@let viewState = state();
+
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading claim details…" />
+  }
+
+  @case ('not-found') {
+    <section class="message-card" role="status">
+      <h1>Claim not found</h1>
+      <p>This claim does not exist or is not available to your user.</p>
+      <a mat-stroked-button routerLink="/claimant/claims">Back to my claims</a>
+    </section>
+  }
+
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h1>We could not load this claim</h1>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadClaim()">Try again</button>
+    </section>
+  }
+
+  @case ('loaded') {
+    @let claim = viewState.claim;
+
+    <header class="claim-header">
+      <div>
+        <p class="eyebrow">{{ claim.type }} claim</p>
+        <h1>{{ claim.referenceNumber }}</h1>
+        <p>
+          Submitted {{ claim.submittedAt | date: 'mediumDate' }} ·
+          {{ claim.market }}
+        </p>
+      </div>
+      <app-status-badge [status]="claim.status" />
+    </header>
+
+    @if (claim.status === ClaimStatus.Settled) {
+      <section class="decision decision--settled">
+        <p class="section-label">Final decision</p>
+        <h2>Claim settled</h2>
+        <p>{{ claim.decisionReason }}</p>
+        <strong>
+          {{ claim.settlementAmount | currency: claim.currency }}
+        </strong>
+      </section>
+    } @else if (claim.status === ClaimStatus.Rejected) {
+      <section class="decision decision--rejected">
+        <p class="section-label">Final decision</p>
+        <h2>Claim rejected</h2>
+        <p>{{ claim.decisionReason }}</p>
+      </section>
+    }
+
+    <div class="summary-grid">
+      <section class="content-card">
+        <p class="section-label">Incident</p>
+        <dl>
+          <div>
+            <dt>Date</dt>
+            <dd>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</dd>
+          </div>
+          <div>
+            <dt>Location</dt>
+            <dd>{{ claim.incidentLocation }}</dd>
+          </div>
+          <div>
+            <dt>Policy</dt>
+            <dd>{{ claim.policyNumber }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="content-card">
+        <p class="section-label">Financial summary</p>
+        <dl>
+          <div>
+            <dt>Reported loss</dt>
+            <dd>{{ claim.reportedLossAmount | currency: claim.currency }}</dd>
+          </div>
+          <div>
+            <dt>Assessed loss</dt>
+            <dd>
+              @if (claim.assessedLossAmount !== null) {
+                {{ claim.assessedLossAmount | currency: claim.currency }}
+              } @else {
+                Not assessed
+              }
+            </dd>
+          </div>
+          @if (claim.settlementAmount !== null) {
+            <div>
+              <dt>Settlement</dt>
+              <dd>{{ claim.settlementAmount | currency: claim.currency }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    </div>
+
+    <section class="content-card content-section">
+      <p class="section-label">Description</p>
+      <p class="description">{{ claim.description }}</p>
+    </section>
+
+    <section class="content-section" aria-labelledby="information-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Correspondence</p>
+          <h2 id="information-title">Information requests</h2>
+        </div>
+        <span>{{ claim.informationRequests.length }}</span>
+      </div>
+
+      @if (claim.informationRequests.length === 0) {
+        <p class="section-empty">No additional information has been requested.</p>
+      } @else {
+        <div class="request-list">
+          @for (request of claim.informationRequests; track request.id) {
+            <article class="request-card">
+              <header>
+                <strong>{{ request.question }}</strong>
+                @if (request.response === null) {
+                  <span class="awaiting-label">Awaiting your response</span>
+                }
+              </header>
+              <time [attr.datetime]="request.requestedAt">
+                Requested {{ request.requestedAt | date: 'medium' }}
+              </time>
+
+              @if (request.response) {
+                <div class="response">
+                  <p class="section-label">Your response</p>
+                  <p>{{ request.response }}</p>
+                  @if (request.respondedAt) {
+                    <time [attr.datetime]="request.respondedAt">
+                      Sent {{ request.respondedAt | date: 'medium' }}
+                    </time>
+                  }
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="content-section" aria-labelledby="history-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Progress</p>
+          <h2 id="history-title">Claim history</h2>
+        </div>
+      </div>
+
+      <ol class="timeline">
+        @for (entry of claim.history; track entry.id) {
+          <li>
+            <span class="timeline-marker" aria-hidden="true"></span>
+            <div>
+              <p>{{ entry.description }}</p>
+              <time [attr.datetime]="entry.occurredAt">
+                {{ entry.occurredAt | date: 'medium' }}
+              </time>
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+}

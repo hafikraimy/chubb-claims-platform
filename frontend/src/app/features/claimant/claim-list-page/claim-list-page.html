@@ -1,0 +1,84 @@
+<header class="page-header">
+  <p class="eyebrow">Claimant workspace</p>
+  <h1>My claims</h1>
+  <p>Track submitted incidents, information requests, and final decisions.</p>
+</header>
+
+@let viewState = state();
+
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading your claims…" />
+  }
+
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h2>We could not load your claims</h2>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadClaims()">Try again</button>
+    </section>
+  }
+
+  @case ('loaded') {
+    @if (viewState.claims.length === 0) {
+      <app-empty-state
+        title="No claims yet"
+        message="Claims you report will appear here with their current status."
+      >
+        <p class="next-step">Incident reporting is the next claimant feature.</p>
+      </app-empty-state>
+    } @else {
+      <div class="claim-table-wrapper">
+        <table class="claim-table">
+          <thead>
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Type</th>
+              <th scope="col">Incident</th>
+              <th scope="col">Reported loss</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Open claim</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (claim of viewState.claims; track claim.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/claimant/claims', claim.id]">
+                    {{ claim.referenceNumber }}
+                  </a>
+                </td>
+                <td>{{ claim.type }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>
+                  {{ claim.reportedLossAmount | currency: claim.currency }}
+                </td>
+                <td><app-status-badge [status]="claim.status" /></td>
+                <td aria-hidden="true">›</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="claim-cards">
+        @for (claim of viewState.claims; track claim.id) {
+          <a class="claim-card" [routerLink]="['/claimant/claims', claim.id]">
+            <span class="claim-card__heading">
+              <strong>{{ claim.referenceNumber }}</strong>
+              <span aria-hidden="true">›</span>
+            </span>
+            <span class="claim-card__meta">
+              {{ claim.type }} ·
+              {{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}
+            </span>
+            <span class="claim-card__amount">
+              {{ claim.reportedLossAmount | currency: claim.currency }}
+            </span>
+            <app-status-badge [status]="claim.status" />
+          </a>
+        }
+      </div>
+    }
+  }
+}

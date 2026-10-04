@@ -47,7 +47,7 @@ export class AppShell {
   protected readonly navigationItems = computed<readonly NavigationItem[]>(() => {
     switch (this.currentUser()?.role) {
       case UserRole.Claimant:
-        return [{ label: 'Claimant overview', route: '/claimant' }];
+        return [{ label: 'My claims', route: '/claimant/claims' }];
       case UserRole.ClaimsOfficer:
         return [{ label: 'Officer overview', route: '/officer' }];
       case UserRole.Manager:
