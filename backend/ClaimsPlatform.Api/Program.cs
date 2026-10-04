@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
 using ClaimsPlatform.Api.Access.Authentication;
 using ClaimsPlatform.Api.Access.Authorization;
 using ClaimsPlatform.Api.Access.Domain;
 using ClaimsPlatform.Api.Access.Endpoints;
+using ClaimsPlatform.Api.Claims.Endpoints;
+using ClaimsPlatform.Api.Common.Errors;
 using ClaimsPlatform.Api.Infrastructure.Persistence;
 using ClaimsPlatform.Api.Infrastructure.Seeding;
 using Microsoft.AspNetCore.Authentication;
@@ -16,6 +19,13 @@ var connectionString = builder.Configuration.GetConnectionString("ClaimsDatabase
 
 builder.Services.AddDbContext<ClaimsDbContext>(options => 
     options.UseNpgsql(connectionString)); 
+
+builder.Services.ConfigureHttpJsonOptions(options =>
+    options.SerializerOptions.Converters.Add(
+        new JsonStringEnumConverter()));
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 
 builder.Services
     .AddAuthentication(DemoAuthenticationDefaults.Scheme)
@@ -61,9 +71,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseExceptionHandler();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapAccessEndpoints();
+app.MapClaimantClaimEndpoints();
 
 app.Run();
