@@ -1,0 +1,126 @@
+namespace ClaimsPlatform.Api.Claims.Domain;
+
+public class Claim
+{
+    private Claim()
+    {
+    }
+
+    private Claim(
+        Guid id,
+        Guid claimantId,
+        ClaimType type,
+        string policyNumber,
+        string market,
+        string currency,
+        DateOnly incidentDate,
+        string incidentLocation,
+        string description,
+        decimal reportedLossAmount,
+        DateTimeOffset submittedAt)
+    {
+        Id = id;
+        ClaimantId = claimantId;
+        Type = type;
+        PolicyNumber = policyNumber;
+        Market = market;
+        Currency = currency;
+        IncidentDate = incidentDate;
+        IncidentLocation = incidentLocation;
+        Description = description;
+        ReportedLossAmount = reportedLossAmount;
+        Status = ClaimStatus.Submitted;
+        SubmittedAt = submittedAt;
+        UpdatedAt = submittedAt;
+    }
+
+    public Guid Id { get; private set; }
+
+    public Guid ClaimantId { get; private set; }
+
+    public ClaimType Type { get; private set; }
+
+    public string PolicyNumber { get; private set; } = string.Empty;
+
+    public string Market { get; private set; } = string.Empty;
+
+    public string Currency { get; private set; } = string.Empty;
+
+    public DateOnly IncidentDate { get; private set; }
+
+    public string IncidentLocation { get; private set; } = string.Empty;
+
+    public string Description { get; private set; } = string.Empty;
+
+    public decimal ReportedLossAmount { get; private set; }
+
+    public decimal? AssessedLossAmount { get; private set; }
+
+    public ClaimStatus Status { get; private set; }
+
+    public Guid? AssignedOfficerId { get; private set; }
+
+    public DateTimeOffset SubmittedAt { get; private set; }
+
+    public DateTimeOffset UpdatedAt { get; private set; }
+
+    public static Claim Submit(
+        Guid claimantId,
+        ClaimType type,
+        string policyNumber,
+        string market,
+        string currency,
+        DateOnly incidentDate,
+        string incidentLocation,
+        string description,
+        decimal reportedLossAmount,
+        DateTimeOffset submittedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(policyNumber);
+        ArgumentException.ThrowIfNullOrWhiteSpace(market);
+        ArgumentException.ThrowIfNullOrWhiteSpace(currency);
+        ArgumentException.ThrowIfNullOrWhiteSpace(incidentLocation);
+        ArgumentException.ThrowIfNullOrWhiteSpace(description);
+
+        if (claimantId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "A claimant is required.",
+                nameof(claimantId));
+        }
+
+        if (currency.Trim().Length != 3)
+        {
+            throw new ArgumentException(
+                "Currency must be a three-character ISO code.",
+                nameof(currency));
+        }
+
+        if (incidentDate > DateOnly.FromDateTime(submittedAt.UtcDateTime))
+        {
+            throw new ArgumentException(
+                "Incident date cannot be in the future.",
+                nameof(incidentDate));
+        }
+
+        if (reportedLossAmount <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(reportedLossAmount),
+                "Reported loss amount must be greater than zero.");
+        }
+
+        return new Claim(
+            id: Guid.NewGuid(),
+            claimantId: claimantId,
+            type: type,
+            policyNumber: policyNumber.Trim(),
+            market: market.Trim().ToUpperInvariant(),
+            currency: currency.Trim().ToUpperInvariant(),
+            incidentDate: incidentDate,
+            incidentLocation: incidentLocation.Trim(),
+            description: description.Trim(),
+            reportedLossAmount: reportedLossAmount,
+            submittedAt: submittedAt);
+    }
+}

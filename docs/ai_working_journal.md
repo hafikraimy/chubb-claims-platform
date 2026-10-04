@@ -119,3 +119,17 @@ loss until the officer enters an assessment.
 Results stay grouped by currency. I will not create a misleading combined total.
 
 I will not use approval rate as a quality score. The demo lacks enough context.
+
+## Challenged the two composite claim indexes
+
+AI suggested indexes on `(claimant_id, submitted_at)` and
+`(assigned_officer_id, status)`. I challenged whether either pair is justified. A claimant should only have a small claim history, and an officer should not have thousands of active claims. Sorting or filtering those small result sets should be cheap after finding the relevant user.
+
+I also pointed out that indexes are not free. Inserts must maintain every index, and including status adds work whenever a claim changes state.
+
+AI suggested simpler indexes on `claimant_id` and `assigned_officer_id`. They
+still support ownership, foreign-key lookups, and each user's claim list. I am recording the challenge before changing the mapping or architecture. I will only add composite indexes later if the real queries and measured plans justify them.
+
+## Simplified team management
+
+I questioned the manager relationship because `WithMany` was confusing. I chose a simple one-to-one rule, one team has one manager, and one manager manages only one team.

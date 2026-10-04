@@ -219,8 +219,8 @@ The initial indexes are intentionally limited to actual access paths:
 
 - Primary keys and the unique claim reference.
 - Foreign-key indexes generated or verified in the migration.
-- `(claimant_id, submitted_at)` for a claimant's claims.
-- `(assigned_officer_id, status)` for officer workload.
+- `claimant_id` for a claimant's claims.
+- `assigned_officer_id` for officer workload.
 - A partial index over submitted, unassigned claims may be added for the queue.
 
 No standalone status or speculative reporting indexes are required for the
