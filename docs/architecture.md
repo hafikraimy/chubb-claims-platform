@@ -206,6 +206,14 @@ but it requires no hosted database or shared credentials. EF Core migrations
 create the schema, and development startup seeds deterministic demo data. The
 panel can clone the repository and create its own database with Docker Compose.
 
+For the evaluator path, Docker Compose also builds the ASP.NET Core API and the
+Angular application. Angular is compiled in a Node build stage and served by
+an unprivileged nginx container, which proxies `/api` to the API over the
+Compose network. The API is published in a .NET SDK build stage and runs in the
+smaller ASP.NET Core runtime image. PostgreSQL remains the only stateful
+container. This packaging does not change the modular-monolith boundaries;
+native development startup remains available for faster iteration.
+
 The minimal schema is:
 
 | Table | Important relationships and data |

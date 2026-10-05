@@ -241,3 +241,14 @@ The Angular production builder initially aborted with exit code 134 inside the
 restricted tool sandbox. I reran it outside that restriction and it completed
 successfully on Node 24.21.0. I treated this as a runner limitation rather than
 changing application code to work around it.
+
+## Added one-command container startup
+
+AI suggested containerizing the frontend and API after the core journeys and
+tests were complete. I accepted it because `docker compose up --build` gives
+the panel a repeatable startup path without requiring local .NET and Node
+versions.
+
+I kept native development commands as well. Compose is local packaging, not a
+change to the modular-monolith design. nginx serves the compiled Angular app
+and proxies API requests, while the API still owns migrations and demo seeding.

@@ -18,6 +18,29 @@ Claims management platform built for the Chubb APAC technical assessment.
 
 ## Run locally
 
+### Docker Compose (recommended for evaluation)
+
+Build and start the frontend, API, and PostgreSQL together:
+
+```bash
+docker compose up --build
+```
+
+Open `http://localhost:4200`. The frontend container serves the compiled
+Angular application and proxies `/api` to the API container. The API waits for
+PostgreSQL to be healthy, then applies migrations and seeds the demo data.
+
+Stop the application with `Ctrl+C`, then remove the containers with:
+
+```bash
+docker compose down
+```
+
+The database is retained in a named volume. Use `docker compose down --volumes`
+only when you deliberately want to reset the demo data.
+
+### Native development
+
 Use three terminals from the repository root.
 
 ### 1. Start PostgreSQL
@@ -74,7 +97,7 @@ npm test
 npm run build
 ```
 
-## Stop PostgreSQL
+## Stop PostgreSQL after native development
 
 ```bash
 docker compose down

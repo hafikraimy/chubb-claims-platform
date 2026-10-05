@@ -10,6 +10,36 @@ services:
       - "5432:5432"
     volumes:
       - claims_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claims_app -d claims_platform"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: ClaimsPlatform.Api/Dockerfile
+    container_name: claims-platform-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_HTTP_PORTS: 8080
+      ConnectionStrings__ClaimsDatabase: Host=postgres;Port=5432;Database=claims_platform;Username=claims_app;Password=claims_dev_password
+    ports:
+      - "5234:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: claims-platform-frontend
+    ports:
+      - "4200:8080"
+    depends_on:
+      - api
 
 volumes:
   claims_postgres_data:
