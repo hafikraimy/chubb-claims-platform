@@ -1,0 +1,214 @@
+<header class="page-header">
+  <p class="eyebrow">Manager workspace</p>
+  <h1>Claims operations</h1>
+  <p>Monitor workload, outstanding exposure, assignments, and team decisions.</p>
+</header>
+@if (successMessage(); as message) {
+  <div class="success-message" role="status">{{ message }}</div>
+}
+@if (assignmentError(); as error) {
+  <div class="error-message" role="alert">
+    <strong>Assignment failed</strong>
+    <p>{{ error }}</p>
+  </div>
+}
+@let viewState = state();
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading manager dashboard…" />
+  }
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h2>We could not load the dashboard</h2>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadDashboard()">Try again</button>
+    </section>
+  }
+  @case ('loaded') {
+    @let dashboard = viewState.dashboard;
+    <section aria-labelledby="exposure-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Outstanding liability</p>
+          <h2 id="exposure-title">Exposure</h2>
+        </div>
+      </div>
+      <div class="metric-grid">
+        @for (item of dashboard.exposure; track item.currency) {
+          <article>
+            <span>{{ item.currency }}</span
+            ><strong>{{ item.amount | currency: item.currency }}</strong>
+          </article>
+        } @empty {
+          <article><span>Exposure</span><strong>None</strong></article>
+        }
+      </div>
+    </section>
+    <section class="section" aria-labelledby="claims-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Active portfolio</p>
+          <h2 id="claims-title">Claims and assignments</h2>
+        </div>
+        <span>{{ dashboard.claims.length }} open</span>
+      </div>
+      @if (dashboard.claims.length === 0) {
+        <app-empty-state
+          title="No open claims"
+          message="There are no active claims in your market."
+        />
+      } @else {
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Claim</th>
+                <th scope="col">Status</th>
+                <th scope="col">Exposure basis</th>
+                <th scope="col">Officer</th>
+                <th scope="col"><span class="visually-hidden">Assignment action</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (claim of dashboard.claims; track claim.id) {
+                <tr>
+                  <td>
+                    <strong>{{ claim.referenceNumber }}</strong
+                    ><small
+                      >{{ claim.type }} · {{ claim.updatedAt | date: 'd MMM y' : 'UTC' }}</small
+                    >
+                  </td>
+                  <td><app-status-badge [status]="claim.status" /></td>
+                  <td>
+                    {{
+                      claim.assessedLossAmount ?? claim.reportedLossAmount
+                        | currency: claim.currency
+                    }}
+                  </td>
+                  <td>
+                    <label [for]="'officer-' + claim.id" class="visually-hidden"
+                      >Officer for {{ claim.referenceNumber }}</label
+                    ><select
+                      [id]="'officer-' + claim.id"
+                      [value]="selections()[claim.id] ?? ''"
+                      (change)="selectOfficer(claim.id, $event)"
+                    >
+                      <option value="">Unassigned</option>
+                      @for (officer of dashboard.officers; track officer.officerId) {
+                        <option [value]="officer.officerId">
+                          {{ officer.officerName }} ({{ officer.openClaimCount }})
+                        </option>
+                      }
+                    </select>
+                  </td>
+                  <td>
+                    <button
+                      mat-stroked-button
+                      type="button"
+                      [disabled]="
+                        !selections()[claim.id] ||
+                        selections()[claim.id] === claim.assignedOfficerId ||
+                        assigningClaimId() !== null
+                      "
+                      (click)="assign(claim)"
+                    >
+                      @if (assigningClaimId() === claim.id) {
+                        <mat-spinner diameter="18" aria-hidden="true" /> Saving…
+                      } @else if (claim.assignedOfficerId) {
+                        Reassign
+                      } @else {
+                        Assign
+                      }
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+    <section class="section" aria-labelledby="workload-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Current position</p>
+          <h2 id="workload-title">Officer workload</h2>
+        </div>
+      </div>
+      <div class="card-grid">
+        @for (officer of dashboard.officers; track officer.officerId) {
+          <article>
+            <h3>{{ officer.officerName }}</h3>
+            <dl>
+              <div>
+                <dt>Open</dt>
+                <dd>{{ officer.openClaimCount }}</dd>
+              </div>
+              <div>
+                <dt>In review</dt>
+                <dd>{{ officer.inReviewCount }}</dd>
+              </div>
+              <div>
+                <dt>Awaiting info</dt>
+                <dd>{{ officer.awaitingInfoCount }}</dd>
+              </div>
+              <div>
+                <dt>Oldest claim</dt>
+                <dd>
+                  @if (officer.oldestOpenClaimAgeDays !== null) {
+                    {{ officer.oldestOpenClaimAgeDays | number: '1.1-1' }} days
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+            </dl>
+          </article>
+        }
+      </div>
+    </section>
+    <section class="section" aria-labelledby="performance-title">
+      <div class="section-heading">
+        <div>
+          <p class="section-label">Last 30 days</p>
+          <h2 id="performance-title">Team performance</h2>
+        </div>
+        <span
+          >{{ dashboard.performance.totalDecisions }} decisions ·
+          @if (dashboard.performance.averageDecisionHours !== null) {
+            {{ dashboard.performance.averageDecisionHours | number: '1.1-1' }} average hours
+          } @else {
+            no completed decisions
+          }
+        </span>
+      </div>
+      <div class="card-grid">
+        @for (officer of dashboard.performance.officers; track officer.officerId) {
+          <article>
+            <h3>{{ officer.officerName }}</h3>
+            <dl>
+              <div>
+                <dt>Settled</dt>
+                <dd>{{ officer.settledCount }}</dd>
+              </div>
+              <div>
+                <dt>Rejected</dt>
+                <dd>{{ officer.rejectedCount }}</dd>
+              </div>
+              <div>
+                <dt>Decision time</dt>
+                <dd>
+                  @if (officer.averageDecisionHours !== null) {
+                    {{ officer.averageDecisionHours | number: '1.1-1' }} hours
+                  } @else {
+                    —
+                  }
+                </dd>
+              </div>
+            </dl>
+          </article>
+        }
+      </div>
+    </section>
+  }
+}

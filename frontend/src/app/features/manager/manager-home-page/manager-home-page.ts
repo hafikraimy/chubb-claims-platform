@@ -1,47 +1,95 @@
-import { Component } from '@angular/core';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { ApiError } from '../../../core/api/api-error';
+import { ManagerApiService } from '../../../core/api/manager-api.service';
+import { EmptyState } from '../../../shared/components/empty-state/empty-state';
+import { LoadingIndicator } from '../../../shared/components/loading-indicator/loading-indicator';
+import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
+import { ManagerDashboard, WorkClaimSummary } from '../../../shared/models/work-management.models';
+
+type DashboardState =
+  | { status: 'loading' }
+  | { status: 'loaded'; dashboard: ManagerDashboard }
+  | { status: 'error'; error: ApiError };
 
 @Component({
   selector: 'app-manager-home-page',
-  template: `
-    <section class="landing" aria-labelledby="manager-title">
-      <p class="eyebrow">Manager workspace</p>
-      <h1 id="manager-title">See team workload and exposure</h1>
-      <p>
-        Dashboard metrics, performance, outstanding exposure, and assignment controls will be added
-        in the manager feature slice.
-      </p>
-    </section>
-  `,
-  styles: `
-    .landing {
-      max-width: 48rem;
-      padding: clamp(1.5rem, 4vw, 3rem);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-card);
-      background: var(--color-surface);
-      box-shadow: var(--shadow-card);
-    }
-
-    .eyebrow {
-      margin: 0 0 0.5rem;
-      color: var(--color-primary);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0;
-      font-size: clamp(1.75rem, 4vw, 2.5rem);
-      line-height: 1.15;
-    }
-
-    p:last-child {
-      margin: 1rem 0 0;
-      color: var(--color-text-muted);
-      line-height: 1.6;
-    }
-  `,
+  imports: [
+    CurrencyPipe,
+    DatePipe,
+    DecimalPipe,
+    EmptyState,
+    LoadingIndicator,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    StatusBadge,
+  ],
+  templateUrl: './manager-home-page.html',
+  styleUrl: './manager-home-page.scss',
 })
-export class ManagerHomePage {}
+export class ManagerHomePage {
+  private readonly managerApi = inject(ManagerApiService);
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly state = signal<DashboardState>({ status: 'loading' });
+  protected readonly selections = signal<Record<string, string>>({});
+  protected readonly assigningClaimId = signal<string | null>(null);
+  protected readonly assignmentError = signal<string | null>(null);
+  protected readonly successMessage = signal<string | null>(null);
+
+  constructor() {
+    this.loadDashboard();
+  }
+
+  protected loadDashboard(message?: string): void {
+    this.state.set({ status: 'loading' });
+    this.assignmentError.set(null);
+    this.successMessage.set(null);
+    this.managerApi
+      .getDashboard()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (dashboard) => {
+          this.state.set({ status: 'loaded', dashboard });
+          this.selections.set(
+            Object.fromEntries(
+              dashboard.claims
+                .filter((claim) => claim.assignedOfficerId)
+                .map((claim) => [claim.id, claim.assignedOfficerId!]),
+            ),
+          );
+          this.successMessage.set(message ?? null);
+        },
+        error: (error: ApiError) => this.state.set({ status: 'error', error }),
+      });
+  }
+
+  protected selectOfficer(claimId: string, event: Event): void {
+    this.selections.update((current) => ({
+      ...current,
+      [claimId]: (event.target as HTMLSelectElement).value,
+    }));
+  }
+
+  protected assign(claim: WorkClaimSummary): void {
+    const officerId = this.selections()[claim.id];
+    if (!officerId || officerId === claim.assignedOfficerId || this.assigningClaimId()) return;
+    this.assigningClaimId.set(claim.id);
+    this.assignmentError.set(null);
+    this.managerApi
+      .assignClaim(claim.id, { officerId })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.assigningClaimId.set(null);
+          this.loadDashboard(`${claim.referenceNumber} assignment updated.`);
+        },
+        error: (error: ApiError) => {
+          this.assigningClaimId.set(null);
+          this.assignmentError.set(error.detail);
+        },
+      });
+  }
+}
