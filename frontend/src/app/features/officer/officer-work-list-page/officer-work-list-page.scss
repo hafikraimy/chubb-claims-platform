@@ -87,6 +87,14 @@ h1 {
   background: rgb(180 35 44 / 3%);
 }
 
+.work-table a,
+.work-card a {
+  color: var(--color-text);
+  font-weight: 700;
+  text-decoration-color: rgb(180 35 44 / 35%);
+  text-underline-offset: 0.2em;
+}
+
 .not-recorded {
   color: var(--color-text-muted);
 }

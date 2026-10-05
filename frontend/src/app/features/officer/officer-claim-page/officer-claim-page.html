@@ -1,0 +1,100 @@
+<a class="back-link" routerLink="/officer/my-work">← Back to my work</a>
+@let viewState = state();
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading claim workbench…" />
+  }
+  @case ('not-found') {
+    <section class="message-card" role="status">
+      <h1>Claim not available</h1>
+      <p>This claim does not exist or is not assigned to you.</p>
+      <a mat-stroked-button routerLink="/officer/my-work">Back to my work</a>
+    </section>
+  }
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h1>We could not load this claim</h1>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadClaim()">Try again</button>
+    </section>
+  }
+  @case ('loaded') {
+    @let claim = viewState.claim;
+    <header class="claim-header">
+      <div>
+        <p class="eyebrow">{{ claim.type }} claim · {{ claim.market }}</p>
+        <h1>{{ claim.referenceNumber }}</h1>
+        <p>Policy {{ claim.policyNumber }} · Submitted {{ claim.submittedAt | date: 'medium' }}</p>
+      </div>
+      <app-status-badge [status]="claim.status" />
+    </header>
+    @if (successMessage(); as message) {
+      <div class="success-message" role="status">{{ message }}</div>
+    }
+    <div class="summary-grid">
+      <section class="content-card">
+        <p class="section-label">Incident</p>
+        <dl>
+          <div>
+            <dt>Date</dt>
+            <dd>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</dd>
+          </div>
+          <div>
+            <dt>Location</dt>
+            <dd>{{ claim.incidentLocation }}</dd>
+          </div>
+          <div>
+            <dt>Type</dt>
+            <dd>{{ claim.type }}</dd>
+          </div>
+        </dl>
+      </section>
+      <section class="content-card">
+        <p class="section-label">Financial summary</p>
+        <dl>
+          <div>
+            <dt>Reported loss</dt>
+            <dd>{{ claim.reportedLossAmount | currency: claim.currency }}</dd>
+          </div>
+          <div>
+            <dt>Assessed loss</dt>
+            <dd>
+              @if (claim.assessedLossAmount !== null) {
+                {{ claim.assessedLossAmount | currency: claim.currency }}
+              } @else {
+                Not recorded
+              }
+            </dd>
+          </div>
+        </dl>
+      </section>
+    </div>
+    <section class="content-card description-card">
+      <p class="section-label">Claimant description</p>
+      <p>{{ claim.description }}</p>
+    </section>
+    <app-assessed-loss-form
+      [claimId]="claim.id"
+      [currency]="claim.currency"
+      [currentAmount]="claim.assessedLossAmount"
+      (saved)="loadClaim('Assessed loss saved.')"
+      (refreshRequested)="loadClaim()"
+    />
+    <section class="content-section" aria-labelledby="history-title">
+      <h2 id="history-title">Claim history</h2>
+      <ol class="timeline">
+        @for (entry of claim.history; track entry.id) {
+          <li>
+            <span aria-hidden="true"></span>
+            <div>
+              <p>{{ entry.description }}</p>
+              <time [attr.datetime]="entry.occurredAt">{{
+                entry.occurredAt | date: 'medium'
+              }}</time>
+            </div>
+          </li>
+        }
+      </ol>
+    </section>
+  }
+}

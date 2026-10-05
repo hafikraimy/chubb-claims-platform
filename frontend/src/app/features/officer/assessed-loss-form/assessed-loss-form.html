@@ -1,0 +1,39 @@
+<form (ngSubmit)="submit()">
+  <p class="section-label">Assessment</p>
+  <h2>Record assessed loss</h2>
+  <p class="hint">
+    @if (currentAmount() !== null) {
+      Update the current estimate as your review progresses.
+    } @else {
+      Add your current estimate of the covered loss.
+    }
+  </p>
+  <div class="form-row">
+    <mat-form-field appearance="outline">
+      <mat-label>Assessed loss ({{ currency() }})</mat-label>
+      <input matInput type="number" min="0.01" step="0.01" [formControl]="amount" />
+      @if (amount.touched && amount.hasError('required')) {
+        <mat-error>Enter an assessed loss amount.</mat-error>
+      } @else if (amount.touched && amount.hasError('min')) {
+        <mat-error>The amount must be greater than zero.</mat-error>
+      }
+    </mat-form-field>
+    <button mat-flat-button type="submit" [disabled]="submitting()">
+      @if (submitting()) {
+        <mat-spinner diameter="18" aria-hidden="true" /> Saving…
+      } @else {
+        Save assessment
+      }
+    </button>
+  </div>
+  @if (submissionError(); as error) {
+    <div class="form-error" role="alert">
+      <p>{{ error }}</p>
+      @if (conflict()) {
+        <button mat-stroked-button type="button" (click)="refreshRequested.emit()">
+          Refresh claim
+        </button>
+      }
+    </div>
+  }
+</form>

@@ -20,4 +20,10 @@ export const OFFICER_ROUTES: Routes = [
         (module) => module.OfficerWorkListPage,
       ),
   },
+  {
+    path: 'claims/:id',
+    title: 'Claim workbench',
+    loadComponent: () =>
+      import('./officer-claim-page/officer-claim-page').then((module) => module.OfficerClaimPage),
+  },
 ];

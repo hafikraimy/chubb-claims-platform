@@ -48,7 +48,7 @@
             @for (claim of viewState.claims; track claim.id) {
               <tr>
                 <td>
-                  <strong>{{ claim.referenceNumber }}</strong>
+                  <a [routerLink]="['/officer/claims', claim.id]">{{ claim.referenceNumber }}</a>
                 </td>
                 <td>{{ claim.type }}</td>
                 <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
@@ -72,7 +72,7 @@
         @for (claim of viewState.claims; track claim.id) {
           <article class="work-card">
             <div class="work-card__heading">
-              <strong>{{ claim.referenceNumber }}</strong>
+              <a [routerLink]="['/officer/claims', claim.id]">{{ claim.referenceNumber }}</a>
               <app-status-badge [status]="claim.status" />
             </div>
             <p class="work-card__meta">
