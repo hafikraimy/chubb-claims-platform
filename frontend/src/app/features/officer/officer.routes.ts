@@ -12,4 +12,12 @@ export const OFFICER_ROUTES: Routes = [
     loadComponent: () =>
       import('./officer-queue-page/officer-queue-page').then((module) => module.OfficerQueuePage),
   },
+  {
+    path: 'my-work',
+    title: 'My work',
+    loadComponent: () =>
+      import('./officer-work-list-page/officer-work-list-page').then(
+        (module) => module.OfficerWorkListPage,
+      ),
+  },
 ];

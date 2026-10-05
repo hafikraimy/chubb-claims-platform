@@ -49,7 +49,10 @@ export class AppShell {
       case UserRole.Claimant:
         return [{ label: 'My claims', route: '/claimant/claims' }];
       case UserRole.ClaimsOfficer:
-        return [{ label: 'Unassigned queue', route: '/officer/queue' }];
+        return [
+          { label: 'My work', route: '/officer/my-work' },
+          { label: 'Unassigned queue', route: '/officer/queue' },
+        ];
       case UserRole.Manager:
         return [{ label: 'Manager overview', route: '/manager' }];
       default:

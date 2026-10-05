@@ -1,0 +1,154 @@
+.page-header {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--color-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.025em;
+}
+
+.page-header div > p:last-child {
+  margin: 0.625rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.message-card {
+  max-width: 40rem;
+  padding: 1.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.message-card--error {
+  border-color: #fecdca;
+  background: var(--color-rejected-bg);
+}
+
+.message-card h2,
+.message-card p {
+  margin-top: 0;
+}
+
+.work-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.work-table {
+  width: 100%;
+  min-width: 65rem;
+  border-collapse: collapse;
+}
+
+.work-table th,
+.work-table td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.work-table th {
+  background: #fafafa;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.work-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.work-table tbody tr {
+  transition: background var(--transition-fast);
+}
+
+.work-table tbody tr:hover {
+  background: rgb(180 35 44 / 3%);
+}
+
+.not-recorded {
+  color: var(--color-text-muted);
+}
+
+.work-cards {
+  display: none;
+}
+
+@media (max-width: 48rem) {
+  .page-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .work-table-wrapper {
+    display: none;
+  }
+
+  .work-cards {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .work-card {
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .work-card__heading {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .work-card__meta {
+    margin: 0.5rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+  }
+
+  .work-card dl {
+    display: grid;
+    gap: 0.625rem;
+    margin: 1rem 0 0;
+  }
+
+  .work-card dl div {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+
+  .work-card dt {
+    color: var(--color-text-muted);
+  }
+
+  .work-card dd {
+    margin: 0;
+    text-align: right;
+  }
+}

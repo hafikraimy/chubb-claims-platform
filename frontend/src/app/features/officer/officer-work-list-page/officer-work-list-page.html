@@ -1,0 +1,106 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Claims officer workspace</p>
+    <h1>My work</h1>
+    <p>Review and progress the open claims currently assigned to you.</p>
+  </div>
+  <a mat-stroked-button routerLink="/officer/queue">View unassigned queue</a>
+</header>
+
+@let viewState = state();
+
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading your assigned claims…" />
+  }
+
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h2>We could not load your work</h2>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadClaims()">Try again</button>
+    </section>
+  }
+
+  @case ('loaded') {
+    @if (viewState.claims.length === 0) {
+      <app-empty-state
+        title="No assigned claims"
+        message="Pick up an unassigned claim when you are ready to begin a review."
+      >
+        <a mat-flat-button routerLink="/officer/queue">View unassigned queue</a>
+      </app-empty-state>
+    } @else {
+      <div class="work-table-wrapper">
+        <table class="work-table">
+          <thead>
+            <tr>
+              <th scope="col">Reference</th>
+              <th scope="col">Type</th>
+              <th scope="col">Incident</th>
+              <th scope="col">Reported loss</th>
+              <th scope="col">Assessed loss</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last updated</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (claim of viewState.claims; track claim.id) {
+              <tr>
+                <td>
+                  <strong>{{ claim.referenceNumber }}</strong>
+                </td>
+                <td>{{ claim.type }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>{{ claim.reportedLossAmount | currency: claim.currency }}</td>
+                <td>
+                  @if (claim.assessedLossAmount !== null) {
+                    {{ claim.assessedLossAmount | currency: claim.currency }}
+                  } @else {
+                    <span class="not-recorded">Not recorded</span>
+                  }
+                </td>
+                <td><app-status-badge [status]="claim.status" /></td>
+                <td>{{ claim.updatedAt | date: 'd MMM y, HH:mm' : 'UTC' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="work-cards">
+        @for (claim of viewState.claims; track claim.id) {
+          <article class="work-card">
+            <div class="work-card__heading">
+              <strong>{{ claim.referenceNumber }}</strong>
+              <app-status-badge [status]="claim.status" />
+            </div>
+            <p class="work-card__meta">
+              {{ claim.type }} · {{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}
+            </p>
+            <dl>
+              <div>
+                <dt>Reported loss</dt>
+                <dd>{{ claim.reportedLossAmount | currency: claim.currency }}</dd>
+              </div>
+              <div>
+                <dt>Assessed loss</dt>
+                <dd>
+                  @if (claim.assessedLossAmount !== null) {
+                    {{ claim.assessedLossAmount | currency: claim.currency }}
+                  } @else {
+                    <span class="not-recorded">Not recorded</span>
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt>Last updated</dt>
+                <dd>{{ claim.updatedAt | date: 'd MMM y, HH:mm' : 'UTC' }}</dd>
+              </div>
+            </dl>
+          </article>
+        }
+      </div>
+    }
+  }
+}
