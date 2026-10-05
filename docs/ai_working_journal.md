@@ -204,3 +204,16 @@ metrics use the same calculation. Domain rules remain on the claim entity.
 I did not add repositories. EF Core already provides repository and unit-of-work
 behaviour, and wrapping it would add ceremony without a second persistence
 implementation or a demonstrated testing need.
+
+## Started the Angular foundation
+
+I asked whether Angular Material was necessary or whether custom CSS was enough.
+I chose a selective mix. Material will handle accessible controls, dialogs,
+menus, snackbars, and progress indicators. Custom SCSS will handle the layout,
+cards, tables, badges, and timelines so the application does not look like an
+untouched Material template.
+
+I kept the frontend structure small and feature-first. Components coordinate
+pages, focused Angular services handle HTTP and shared state, and the backend
+remains responsible for business rules. I did not add frontend controllers,
+repositories, NgRx, or SSR.
