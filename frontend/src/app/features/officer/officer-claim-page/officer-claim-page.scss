@@ -97,8 +97,60 @@ dd {
   border-color: #fecdca;
   background: var(--color-rejected-bg);
 }
+.awaiting-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #fedf89;
+  border-radius: var(--radius-card);
+  background: var(--color-awaiting-bg);
+}
+.awaiting-message p {
+  margin: 0.375rem 0 0;
+}
 .content-section {
   margin-top: 2rem;
+}
+.empty-message {
+  color: var(--color-text-muted);
+}
+.request-list {
+  display: grid;
+  gap: 0.75rem;
+}
+.request-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+.request-card time {
+  font-size: 0.8125rem;
+}
+.response {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  border-left: 3px solid var(--color-info-text);
+  background: var(--color-info-bg);
+}
+.response span {
+  color: var(--color-info-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.response p {
+  margin: 0.375rem 0 0;
+}
+.awaiting-label {
+  width: fit-content;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-awaiting-bg);
+  color: var(--color-awaiting-text);
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 .timeline {
   margin: 0;

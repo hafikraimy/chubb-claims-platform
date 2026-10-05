@@ -73,13 +73,52 @@
       <p class="section-label">Claimant description</p>
       <p>{{ claim.description }}</p>
     </section>
-    <app-assessed-loss-form
-      [claimId]="claim.id"
-      [currency]="claim.currency"
-      [currentAmount]="claim.assessedLossAmount"
-      (saved)="loadClaim('Assessed loss saved.')"
-      (refreshRequested)="loadClaim()"
-    />
+    @if (claim.status === ClaimStatus.InReview) {
+      <app-assessed-loss-form
+        [claimId]="claim.id"
+        [currency]="claim.currency"
+        [currentAmount]="claim.assessedLossAmount"
+        (saved)="loadClaim('Assessed loss saved.')"
+        (refreshRequested)="loadClaim()"
+      />
+      <app-officer-workflow-actions
+        [claimId]="claim.id"
+        [currency]="claim.currency"
+        (completed)="loadClaim($event)"
+        (refreshRequested)="loadClaim()"
+      />
+    } @else if (claim.status === ClaimStatus.AwaitingInfo) {
+      <div class="awaiting-message" role="status">
+        <strong>Waiting for claimant information</strong>
+        <p>Assessment and decision actions will be available after the claimant responds.</p>
+      </div>
+    }
+
+    <section class="content-section" aria-labelledby="information-title">
+      <h2 id="information-title">Information requests</h2>
+      @if (claim.informationRequests.length === 0) {
+        <p class="empty-message">No information has been requested.</p>
+      } @else {
+        <div class="request-list">
+          @for (request of claim.informationRequests; track request.id) {
+            <article class="request-card">
+              <strong>{{ request.question }}</strong>
+              <time [attr.datetime]="request.requestedAt">
+                Requested {{ request.requestedAt | date: 'medium' }}
+              </time>
+              @if (request.response) {
+                <div class="response">
+                  <span>Claimant response</span>
+                  <p>{{ request.response }}</p>
+                </div>
+              } @else {
+                <span class="awaiting-label">Awaiting response</span>
+              }
+            </article>
+          }
+        </div>
+      }
+    </section>
     <section class="content-section" aria-labelledby="history-title">
       <h2 id="history-title">Claim history</h2>
       <ol class="timeline">

@@ -7,8 +7,9 @@ import { ApiError } from '../../../core/api/api-error';
 import { ClaimsApiService } from '../../../core/api/claims-api.service';
 import { LoadingIndicator } from '../../../shared/components/loading-indicator/loading-indicator';
 import { StatusBadge } from '../../../shared/components/status-badge/status-badge';
-import { ClaimDetail } from '../../../shared/models/claim.models';
+import { ClaimDetail, ClaimStatus } from '../../../shared/models/claim.models';
 import { AssessedLossForm } from '../assessed-loss-form/assessed-loss-form';
+import { OfficerWorkflowActions } from '../officer-workflow-actions/officer-workflow-actions';
 
 type OfficerClaimState =
   | { status: 'loading' }
@@ -24,6 +25,7 @@ type OfficerClaimState =
     DatePipe,
     LoadingIndicator,
     MatButtonModule,
+    OfficerWorkflowActions,
     RouterLink,
     StatusBadge,
   ],
@@ -36,6 +38,7 @@ export class OfficerClaimPage {
   private readonly claimId = inject(ActivatedRoute).snapshot.paramMap.get('id');
   protected readonly state = signal<OfficerClaimState>({ status: 'loading' });
   protected readonly successMessage = signal<string | null>(null);
+  protected readonly ClaimStatus = ClaimStatus;
 
   constructor() {
     this.loadClaim();

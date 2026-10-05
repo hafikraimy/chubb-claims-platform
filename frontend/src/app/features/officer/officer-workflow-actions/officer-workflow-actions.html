@@ -1,0 +1,83 @@
+<section aria-labelledby="actions-title">
+  <p class="section-label">Progress claim</p>
+  <h2 id="actions-title">Workflow actions</h2>
+  <div class="action-selectors">
+    <button mat-stroked-button type="button" (click)="selectAction('information')">
+      Request information
+    </button>
+    <button mat-stroked-button type="button" (click)="selectAction('settle')">Settle claim</button>
+    <button class="reject-button" mat-stroked-button type="button" (click)="selectAction('reject')">
+      Reject claim
+    </button>
+  </div>
+
+  @if (activeAction() === 'information') {
+    <form [formGroup]="informationForm" (ngSubmit)="requestInformation()">
+      <h3>Request more information</h3>
+      <mat-form-field appearance="outline"
+        ><mat-label>Question for the claimant</mat-label
+        ><textarea matInput rows="4" formControlName="question"></textarea
+        ><mat-hint align="end">{{ informationForm.controls.question.value.length }}/1000</mat-hint>
+        @if (
+          informationForm.controls.question.touched && informationForm.controls.question.invalid
+        ) {
+          <mat-error>Enter a question.</mat-error>
+        }
+      </mat-form-field>
+      <button mat-flat-button type="submit" [disabled]="submitting()">Send request</button>
+    </form>
+  } @else if (activeAction() === 'settle') {
+    <form [formGroup]="settleForm" (ngSubmit)="settle()">
+      <h3>Settle claim</h3>
+      <mat-form-field appearance="outline"
+        ><mat-label>Settlement amount ({{ currency() }})</mat-label
+        ><input matInput type="number" min="0.01" step="0.01" formControlName="settlementAmount" />
+        @if (
+          settleForm.controls.settlementAmount.touched &&
+          settleForm.controls.settlementAmount.invalid
+        ) {
+          <mat-error>Enter a positive settlement amount.</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field appearance="outline"
+        ><mat-label>Decision reason</mat-label
+        ><textarea matInput rows="4" formControlName="reason"></textarea>
+        @if (settleForm.controls.reason.touched && settleForm.controls.reason.invalid) {
+          <mat-error>Enter a decision reason.</mat-error>
+        }
+      </mat-form-field>
+      <button mat-flat-button type="submit" [disabled]="submitting()">Confirm settlement</button>
+    </form>
+  } @else if (activeAction() === 'reject') {
+    <form [formGroup]="rejectForm" (ngSubmit)="reject()">
+      <h3>Reject claim</h3>
+      <p>This decision closes the claim.</p>
+      <mat-form-field appearance="outline"
+        ><mat-label>Rejection reason</mat-label
+        ><textarea matInput rows="4" formControlName="reason"></textarea>
+        @if (rejectForm.controls.reason.touched && rejectForm.controls.reason.invalid) {
+          <mat-error>Enter a rejection reason.</mat-error>
+        }
+      </mat-form-field>
+      <button class="destructive" mat-flat-button type="submit" [disabled]="submitting()">
+        Confirm rejection
+      </button>
+    </form>
+  }
+
+  @if (submitting()) {
+    <div class="progress" role="status">
+      <mat-spinner diameter="20" aria-hidden="true" /> Saving decision…
+    </div>
+  }
+  @if (submissionError(); as error) {
+    <div class="form-error" role="alert">
+      <p>{{ error }}</p>
+      @if (conflict()) {
+        <button mat-stroked-button type="button" (click)="refreshRequested.emit()">
+          Refresh claim
+        </button>
+      }
+    </div>
+  }
+</section>
