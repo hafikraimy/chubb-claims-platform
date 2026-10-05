@@ -252,3 +252,15 @@ versions.
 I kept native development commands as well. Compose is local packaging, not a
 change to the modular-monolith design. nginx serves the compiled Angular app
 and proxies API requests, while the API still owns migrations and demo seeding.
+
+## Expanded backend tests without the PostgreSQL workflow fixture
+
+I asked AI to cover the remaining backend behaviour but deferred the real
+PostgreSQL workflow tests for now. I accepted a test-only EF in-memory provider
+for fast query, authorization-scope, reporting, and controller contract tests.
+It does not replace PostgreSQL in the application and it cannot prove database
+concurrency behaviour.
+
+I kept the PostgreSQL end-to-end journey and simultaneous pickup race as an
+explicit remaining gap. Those tests need a repeatable PostgreSQL fixture rather
+than pretending the in-memory provider has the same transaction semantics.
