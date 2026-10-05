@@ -264,3 +264,28 @@ concurrency behaviour.
 I kept the PostgreSQL end-to-end journey and simultaneous pickup race as an
 explicit remaining gap. Those tests need a repeatable PostgreSQL fixture rather
 than pretending the in-memory provider has the same transaction semantics.
+
+## Fixed frontend workflow bugs
+
+AI helped trace a date shift to UTC formatting on a date-only value. I removed
+that conversion so the submitted incident date stays the same everywhere.
+
+I also fixed assessed loss after the first attempt missed the real problem. The
+save button was refreshing the page before the API call. I changed it to an
+explicit Angular action and verified the value reaches the API and summary.
+
+I removed the duplicate empty-state buttons and the unnecessary expand icon.
+They repeated actions that were already clear in the page header or claim link.
+
+## Increased backend unit coverage
+
+I accepted AI's suggestion to test more than the claim entity happy path. I
+added workflow failures, access boundaries, query filtering, reporting,
+exposure, and HTTP error contracts. I kept real PostgreSQL workflow and
+concurrency tests as a separate remaining task.
+
+## Containerized the local application
+
+I containerized Angular, the API, and PostgreSQL and wired them through Docker
+Compose. I chose this so the full app starts the same way on another machine
+and is less dependent on my local Node, .NET, or database setup.
