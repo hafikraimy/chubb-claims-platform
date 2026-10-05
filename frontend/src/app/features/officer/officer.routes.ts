@@ -26,4 +26,10 @@ export const OFFICER_ROUTES: Routes = [
     loadComponent: () =>
       import('./officer-claim-page/officer-claim-page').then((module) => module.OfficerClaimPage),
   },
+  {
+    path: 'team',
+    title: 'Team summary',
+    loadComponent: () =>
+      import('./officer-team-page/officer-team-page').then((module) => module.OfficerTeamPage),
+  },
 ];

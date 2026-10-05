@@ -52,6 +52,7 @@ export class AppShell {
         return [
           { label: 'My work', route: '/officer/my-work' },
           { label: 'Unassigned queue', route: '/officer/queue' },
+          { label: 'Team summary', route: '/officer/team' },
         ];
       case UserRole.Manager:
         return [{ label: 'Manager overview', route: '/manager' }];

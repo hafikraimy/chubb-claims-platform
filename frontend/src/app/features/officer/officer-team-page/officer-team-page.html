@@ -1,0 +1,135 @@
+<header class="page-header">
+  <p class="eyebrow">Claims officer workspace</p>
+  <h1>Team summary</h1>
+  <p>Read-only workload and decision performance for your team.</p>
+</header>
+@let viewState = state();
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading team summary…" />
+  }
+  @case ('error') {
+    <section class="message-card message-card--error" role="alert">
+      <h2>We could not load the team summary</h2>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadSummary()">Try again</button>
+    </section>
+  }
+  @case ('loaded') {
+    @let summary = viewState.summary;
+    @if (summary.workload.length === 0) {
+      <app-empty-state
+        title="No team data"
+        message="No claims officers are available in this team."
+      />
+    } @else {
+      <section aria-labelledby="workload-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-label">Current position</p>
+            <h2 id="workload-title">Team workload</h2>
+          </div>
+          <span class="read-only">Read only</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Officer</th>
+                <th scope="col">Open claims</th>
+                <th scope="col">In review</th>
+                <th scope="col">Awaiting info</th>
+                <th scope="col">Average age</th>
+                <th scope="col">Oldest</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (officer of summary.workload; track officer.officerId) {
+                <tr>
+                  <td>
+                    <strong>{{ officer.officerName }}</strong>
+                  </td>
+                  <td>{{ officer.openClaimCount }}</td>
+                  <td>{{ officer.inReviewCount }}</td>
+                  <td>{{ officer.awaitingInfoCount }}</td>
+                  <td>
+                    @if (officer.averageOpenClaimAgeDays !== null) {
+                      {{ officer.averageOpenClaimAgeDays | number: '1.1-1' }} days
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td>
+                    @if (officer.oldestOpenClaimAgeDays !== null) {
+                      {{ officer.oldestOpenClaimAgeDays | number: '1.1-1' }} days
+                    } @else {
+                      —
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section class="performance" aria-labelledby="performance-title">
+        <div class="section-heading">
+          <div>
+            <p class="section-label">Last 30 days</p>
+            <h2 id="performance-title">Decision performance</h2>
+          </div>
+          <span
+            >{{ summary.performance.periodStart | date: 'd MMM y' : 'UTC' }} –
+            {{ summary.performance.periodEnd | date: 'd MMM y' : 'UTC' }}</span
+          >
+        </div>
+        <div class="metric-grid">
+          <article>
+            <span>Total decisions</span><strong>{{ summary.performance.totalDecisions }}</strong>
+          </article>
+          <article>
+            <span>Average decision time</span
+            ><strong>
+              @if (summary.performance.averageDecisionHours !== null) {
+                {{ summary.performance.averageDecisionHours | number: '1.1-1' }} hours
+              } @else {
+                —
+              }
+            </strong>
+          </article>
+        </div>
+        <div class="performance-grid">
+          @for (officer of summary.performance.officers; track officer.officerId) {
+            <article>
+              <h3>{{ officer.officerName }}</h3>
+              <dl>
+                <div>
+                  <dt>Settled</dt>
+                  <dd>{{ officer.settledCount }}</dd>
+                </div>
+                <div>
+                  <dt>Rejected</dt>
+                  <dd>{{ officer.rejectedCount }}</dd>
+                </div>
+                <div>
+                  <dt>Total decisions</dt>
+                  <dd>{{ officer.totalDecisions }}</dd>
+                </div>
+                <div>
+                  <dt>Average time</dt>
+                  <dd>
+                    @if (officer.averageDecisionHours !== null) {
+                      {{ officer.averageDecisionHours | number: '1.1-1' }} hours
+                    } @else {
+                      —
+                    }
+                  </dd>
+                </div>
+              </dl>
+            </article>
+          }
+        </div>
+      </section>
+    }
+  }
+}
