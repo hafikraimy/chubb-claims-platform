@@ -51,6 +51,7 @@ describe('ClaimListPage', () => {
     expect(link.getAttribute('href')).toBe('/claimant/claims/claim-1');
     expect(fixture.nativeElement.textContent).toContain('In review');
     expect(fixture.nativeElement.textContent).toContain('MYR');
+    expect(fixture.nativeElement.textContent).not.toContain('›');
   });
 
   it('shows an empty state when the claimant has no claims', () => {
@@ -60,6 +61,7 @@ describe('ClaimListPage', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('No claims yet');
+    expect(fixture.nativeElement.querySelectorAll('a').length).toBe(1);
   });
 
   it('shows the API error and retries the request', () => {

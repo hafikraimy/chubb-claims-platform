@@ -75,7 +75,7 @@
                   <td>
                     <strong>{{ claim.referenceNumber }}</strong
                     ><small
-                      >{{ claim.type }} · {{ claim.updatedAt | date: 'd MMM y' : 'UTC' }}</small
+                      >{{ claim.type }} · Incident {{ claim.incidentDate | date: 'd MMM y' }}</small
                     >
                   </td>
                   <td><app-status-badge [status]="claim.status" /></td>
@@ -95,7 +95,10 @@
                     >
                       <option value="">Unassigned</option>
                       @for (officer of dashboard.officers; track officer.officerId) {
-                        <option [value]="officer.officerId">
+                        <option
+                          [value]="officer.officerId"
+                          [selected]="selections()[claim.id] === officer.officerId"
+                        >
                           {{ officer.officerName }} ({{ officer.openClaimCount }})
                         </option>
                       }

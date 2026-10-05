@@ -27,9 +27,7 @@
       <app-empty-state
         title="No claims yet"
         message="Claims you report will appear here with their current status."
-      >
-        <a mat-flat-button routerLink="/claimant/claims/new">Report an incident</a>
-      </app-empty-state>
+      />
     } @else {
       <div class="claim-table-wrapper">
         <table class="claim-table">
@@ -40,7 +38,6 @@
               <th scope="col">Incident</th>
               <th scope="col">Reported loss</th>
               <th scope="col">Status</th>
-              <th scope="col"><span class="visually-hidden">Open claim</span></th>
             </tr>
           </thead>
           <tbody>
@@ -52,12 +49,11 @@
                   </a>
                 </td>
                 <td>{{ claim.type }}</td>
-                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' }}</td>
                 <td>
                   {{ claim.reportedLossAmount | currency: claim.currency }}
                 </td>
                 <td><app-status-badge [status]="claim.status" /></td>
-                <td aria-hidden="true">›</td>
               </tr>
             }
           </tbody>
@@ -69,11 +65,10 @@
           <a class="claim-card" [routerLink]="['/claimant/claims', claim.id]">
             <span class="claim-card__heading">
               <strong>{{ claim.referenceNumber }}</strong>
-              <span aria-hidden="true">›</span>
             </span>
             <span class="claim-card__meta">
               {{ claim.type }} ·
-              {{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}
+              {{ claim.incidentDate | date: 'd MMM y' }}
             </span>
             <span class="claim-card__amount">
               {{ claim.reportedLossAmount | currency: claim.currency }}

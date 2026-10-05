@@ -81,6 +81,28 @@ describe('ManagerHomePage', () => {
     expect(content).toContain('Team performance');
   });
 
+  it('selects the currently assigned officer when the dashboard loads', () => {
+    managerApi.getDashboard.mockReturnValue(
+      of({
+        ...dashboard,
+        claims: [
+          {
+            ...dashboard.claims[0],
+            status: ClaimStatus.InReview,
+            assignedOfficerId: 'officer-1',
+          },
+        ],
+      }),
+    );
+    const fixture = TestBed.createComponent(ManagerHomePage);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('select') as HTMLSelectElement;
+
+    expect(select.value).toBe('officer-1');
+    expect(select.selectedOptions[0].textContent).toContain('Aisha Tan');
+  });
+
   it('assigns a selected officer and refreshes the dashboard', () => {
     managerApi.getDashboard.mockReturnValue(of(dashboard));
     managerApi.assignClaim.mockReturnValue(

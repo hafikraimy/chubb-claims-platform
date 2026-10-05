@@ -44,6 +44,21 @@ export class OfficerClaimPage {
     this.loadClaim();
   }
 
+  protected assessedLossSaved(amount: number): void {
+    this.state.update((current) =>
+      current.status === 'loaded'
+        ? {
+            status: 'loaded',
+            claim: {
+              ...current.claim,
+              assessedLossAmount: amount,
+            },
+          }
+        : current,
+    );
+    this.successMessage.set('Assessed loss saved.');
+  }
+
   protected loadClaim(message?: string): void {
     if (!this.claimId) {
       this.state.set({ status: 'not-found' });

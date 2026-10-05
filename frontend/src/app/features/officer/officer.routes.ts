@@ -4,7 +4,7 @@ export const OFFICER_ROUTES: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    redirectTo: 'queue',
+    redirectTo: 'my-work',
   },
   {
     path: 'queue',

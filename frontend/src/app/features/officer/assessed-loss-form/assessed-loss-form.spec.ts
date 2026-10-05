@@ -16,11 +16,11 @@ describe('AssessedLossForm', () => {
     }).compileComponents();
   });
 
-  function createFixture() {
+  function createFixture(currentAmount: number | null = null) {
     const fixture = TestBed.createComponent(AssessedLossForm);
     fixture.componentRef.setInput('claimId', 'claim-1');
     fixture.componentRef.setInput('currency', 'MYR');
-    fixture.componentRef.setInput('currentAmount', null);
+    fixture.componentRef.setInput('currentAmount', currentAmount);
     fixture.detectChanges();
     return fixture;
   }
@@ -30,6 +30,14 @@ describe('AssessedLossForm', () => {
     fixture.componentInstance['submit']();
     fixture.detectChanges();
     expect(workflowApi.recordAssessedLoss).not.toHaveBeenCalled();
+  });
+
+  it('shows the current assessed loss so it can be updated', () => {
+    const fixture = createFixture(2200);
+
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+
+    expect(input.valueAsNumber).toBe(2200);
   });
 
   it('records an assessed loss and emits saved', () => {
@@ -45,7 +53,29 @@ describe('AssessedLossForm', () => {
     fixture.componentInstance['amount'].setValue(2200);
     fixture.componentInstance['submit']();
     expect(workflowApi.recordAssessedLoss).toHaveBeenCalledWith('claim-1', { amount: 2200 });
-    expect(saved).toHaveBeenCalled();
+    expect(saved).toHaveBeenCalledWith(2200);
+  });
+
+  it('saves from an explicit button click without native form submission', () => {
+    workflowApi.recordAssessedLoss.mockReturnValue(
+      of({
+        id: 'claim-1',
+        status: ClaimStatus.InReview,
+        updatedAt: '2026-10-05T00:00:00Z',
+      }),
+    );
+    const fixture = createFixture();
+    fixture.componentInstance['amount'].setValue(2200);
+
+    const button = fixture.nativeElement.querySelector(
+      '.form-row button',
+    ) as HTMLButtonElement;
+    expect(button.type).toBe('button');
+    button.click();
+
+    expect(workflowApi.recordAssessedLoss).toHaveBeenCalledWith('claim-1', {
+      amount: 2200,
+    });
   });
 
   it('locks the form while saving and offers refresh on conflict', () => {

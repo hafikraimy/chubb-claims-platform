@@ -1,4 +1,4 @@
-<form (ngSubmit)="submit()">
+<section class="assessment-form">
   <p class="section-label">Assessment</p>
   <h2>Record assessed loss</h2>
   <p class="hint">
@@ -18,7 +18,7 @@
         <mat-error>The amount must be greater than zero.</mat-error>
       }
     </mat-form-field>
-    <button mat-flat-button type="submit" [disabled]="submitting()">
+    <button mat-flat-button type="button" [disabled]="submitting()" (click)="submit()">
       @if (submitting()) {
         <mat-spinner diameter="18" aria-hidden="true" /> Saving…
       } @else {
@@ -36,4 +36,4 @@
       }
     </div>
   }
-</form>
+</section>

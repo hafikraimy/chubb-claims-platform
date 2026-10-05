@@ -65,7 +65,7 @@
                   <strong>{{ claim.referenceNumber }}</strong>
                 </td>
                 <td>{{ claim.type }}</td>
-                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' }}</td>
                 <td>{{ claim.reportedLossAmount | currency: claim.currency }}</td>
                 <td>{{ claim.submittedAt | date: 'd MMM y, HH:mm' : 'UTC' }}</td>
                 <td><app-status-badge [status]="claim.status" /></td>
@@ -104,7 +104,7 @@
               </div>
               <div>
                 <dt>Incident</dt>
-                <dd>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</dd>
+                <dd>{{ claim.incidentDate | date: 'd MMM y' }}</dd>
               </div>
               <div>
                 <dt>Reported loss</dt>

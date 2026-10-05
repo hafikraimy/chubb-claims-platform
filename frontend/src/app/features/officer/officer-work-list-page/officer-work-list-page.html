@@ -27,9 +27,7 @@
       <app-empty-state
         title="No assigned claims"
         message="Pick up an unassigned claim when you are ready to begin a review."
-      >
-        <a mat-flat-button routerLink="/officer/queue">View unassigned queue</a>
-      </app-empty-state>
+      />
     } @else {
       <div class="work-table-wrapper">
         <table class="work-table">
@@ -51,7 +49,7 @@
                   <a [routerLink]="['/officer/claims', claim.id]">{{ claim.referenceNumber }}</a>
                 </td>
                 <td>{{ claim.type }}</td>
-                <td>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</td>
+                <td>{{ claim.incidentDate | date: 'd MMM y' }}</td>
                 <td>{{ claim.reportedLossAmount | currency: claim.currency }}</td>
                 <td>
                   @if (claim.assessedLossAmount !== null) {
@@ -76,7 +74,7 @@
               <app-status-badge [status]="claim.status" />
             </div>
             <p class="work-card__meta">
-              {{ claim.type }} · {{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}
+              {{ claim.type }} · {{ claim.incidentDate | date: 'd MMM y' }}
             </p>
             <dl>
               <div>

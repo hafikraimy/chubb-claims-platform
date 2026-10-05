@@ -37,7 +37,7 @@
         <dl>
           <div>
             <dt>Date</dt>
-            <dd>{{ claim.incidentDate | date: 'd MMM y' : 'UTC' }}</dd>
+            <dd>{{ claim.incidentDate | date: 'd MMM y' }}</dd>
           </div>
           <div>
             <dt>Location</dt>
@@ -78,7 +78,7 @@
         [claimId]="claim.id"
         [currency]="claim.currency"
         [currentAmount]="claim.assessedLossAmount"
-        (saved)="loadClaim('Assessed loss saved.')"
+        (saved)="assessedLossSaved($event)"
         (refreshRequested)="loadClaim()"
       />
       <app-officer-workflow-actions

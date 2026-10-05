@@ -1,4 +1,4 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,7 +24,7 @@ export class AssessedLossForm {
   readonly claimId = input.required<string>();
   readonly currency = input.required<string>();
   readonly currentAmount = input.required<number | null>();
-  readonly saved = output<void>();
+  readonly saved = output<number>();
   readonly refreshRequested = output<void>();
   protected readonly amount = new FormControl<number | null>(null, [
     Validators.required,
@@ -33,6 +33,12 @@ export class AssessedLossForm {
   protected readonly submitting = signal(false);
   protected readonly submissionError = signal<string | null>(null);
   protected readonly conflict = signal(false);
+
+  constructor() {
+    effect(() => {
+      this.amount.setValue(this.currentAmount(), { emitEvent: false });
+    });
+  }
 
   protected submit(): void {
     this.amount.markAsTouched();
@@ -44,7 +50,11 @@ export class AssessedLossForm {
     this.submitting.set(true);
     this.amount.disable();
     this.workflowApi.recordAssessedLoss(this.claimId(), { amount }).subscribe({
-      next: () => this.saved.emit(),
+      next: () => {
+        this.submitting.set(false);
+        this.amount.enable();
+        this.saved.emit(amount);
+      },
       error: (error: ApiError) => {
         this.submitting.set(false);
         this.amount.enable();

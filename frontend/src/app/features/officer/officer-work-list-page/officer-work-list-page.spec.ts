@@ -66,16 +66,15 @@ describe('OfficerWorkListPage', () => {
     expect(fixture.nativeElement.querySelector('table').textContent).toContain('Not recorded');
   });
 
-  it('shows an empty state linked to the unassigned queue', () => {
+  it('shows an empty state without duplicating the header queue action', () => {
     officerWorkApi.getMyClaims.mockReturnValue(of([]));
 
     const fixture = TestBed.createComponent(OfficerWorkListPage);
     fixture.detectChanges();
 
     const emptyState = fixture.nativeElement.querySelector('app-empty-state') as HTMLElement;
-    const queueLink = emptyState.querySelector('a') as HTMLAnchorElement;
     expect(emptyState.textContent).toContain('No assigned claims');
-    expect(queueLink.getAttribute('href')).toBe('/officer/queue');
+    expect(emptyState.querySelector('a')).toBeNull();
   });
 
   it('shows an API error and retries the request', () => {

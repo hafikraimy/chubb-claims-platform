@@ -52,7 +52,6 @@ export class ManagerHomePage {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (dashboard) => {
-          this.state.set({ status: 'loaded', dashboard });
           this.selections.set(
             Object.fromEntries(
               dashboard.claims
@@ -60,6 +59,7 @@ export class ManagerHomePage {
                 .map((claim) => [claim.id, claim.assignedOfficerId!]),
             ),
           );
+          this.state.set({ status: 'loaded', dashboard });
           this.successMessage.set(message ?? null);
         },
         error: (error: ApiError) => this.state.set({ status: 'error', error }),
