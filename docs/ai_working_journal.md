@@ -217,3 +217,27 @@ I kept the frontend structure small and feature-first. Components coordinate
 pages, focused Angular services handle HTTP and shared state, and the backend
 remains responsible for business rules. I did not add frontend controllers,
 repositories, NgRx, or SSR.
+
+## Completed the role journeys
+
+I built the frontend in small role-based slices instead of one large dashboard.
+The claimant can submit and track claims and answer information requests. The
+officer can pick up work, assess it, request information, and settle or reject
+it. The manager can assign work and see workload, exposure, and performance.
+
+I reused the backend's shared claim detail contract but kept claimant and
+officer pages separate. Their actions and information hierarchy are different,
+and a highly configurable shared screen would be harder to explain.
+
+I kept team performance read-only for officers. Assignment and reassignment
+remain manager-only, matching the architecture and API authorization.
+
+## Finished frontend verification
+
+I kept the automated frontend tests focused on state and user actions. The full
+suite passes with 88 tests, and the backend still passes all 16 tests.
+
+The Angular production builder initially aborted with exit code 134 inside the
+restricted tool sandbox. I reran it outside that restriction and it completed
+successfully on Node 24.21.0. I treated this as a runner limitation rather than
+changing application code to work around it.
