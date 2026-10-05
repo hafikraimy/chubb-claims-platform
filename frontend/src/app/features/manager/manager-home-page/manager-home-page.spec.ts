@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { of, Subject, throwError } from 'rxjs';
 import { ApiError } from '../../../core/api/api-error';
 import { ManagerApiService } from '../../../core/api/manager-api.service';
@@ -59,7 +60,7 @@ describe('ManagerHomePage', () => {
     vi.clearAllMocks();
     await TestBed.configureTestingModule({
       imports: [ManagerHomePage],
-      providers: [{ provide: ManagerApiService, useValue: managerApi }],
+      providers: [provideRouter([]), { provide: ManagerApiService, useValue: managerApi }],
     }).compileComponents();
   });
 

@@ -97,6 +97,24 @@ public class ClaimTests
     }
 
     [Fact]
+    public void Submit_WithOversizedDescription_ThrowsArgumentException()
+    {
+        var exception = Assert.Throws<ArgumentException>(() => Claim.Submit(
+            ClaimantId,
+            ClaimType.Motor,
+            "POL-10001",
+            "MY",
+            "MYR",
+            new DateOnly(2026, 10, 2),
+            "Kuala Lumpur",
+            new string('x', ClaimFieldLimits.Description + 1),
+            2_500m,
+            SubmittedAt));
+
+        Assert.Equal("description", exception.ParamName);
+    }
+
+    [Fact]
     public void AssignTo_SubmittedClaim_AssignsOfficerAndStartsReview()
     {
         var claim = CreateSubmittedClaim();

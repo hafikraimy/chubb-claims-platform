@@ -41,17 +41,17 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
 
         builder.Property(claim => claim.PolicyNumber)
             .HasColumnName("policy_number")
-            .HasMaxLength(50)
+            .HasMaxLength(ClaimFieldLimits.PolicyNumber)
             .IsRequired();
 
         builder.Property(claim => claim.Market)
             .HasColumnName("market")
-            .HasMaxLength(2)
+            .HasMaxLength(ClaimFieldLimits.Market)
             .IsRequired();
 
         builder.Property(claim => claim.Currency)
             .HasColumnName("currency")
-            .HasMaxLength(3)
+            .HasMaxLength(ClaimFieldLimits.Currency)
             .IsRequired();
 
         builder.Property(claim => claim.IncidentDate)
@@ -61,12 +61,12 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
 
         builder.Property(claim => claim.IncidentLocation)
             .HasColumnName("incident_location")
-            .HasMaxLength(200)
+            .HasMaxLength(ClaimFieldLimits.IncidentLocation)
             .IsRequired();
 
         builder.Property(claim => claim.Description)
             .HasColumnName("description")
-            .HasMaxLength(2_000)
+            .HasMaxLength(ClaimFieldLimits.Description)
             .IsRequired();
 
         builder.Property(claim => claim.ReportedLossAmount)
@@ -99,7 +99,7 @@ public class ClaimConfiguration : IEntityTypeConfiguration<Claim>
     
         builder.Property(claim => claim.DecisionReason)
             .HasColumnName("decision_reason")
-            .HasMaxLength(1_000);
+            .HasMaxLength(ClaimFieldLimits.DecisionReason);
 
         builder.Property(claim => claim.SettlementAmount)
             .HasColumnName("settlement_amount")

@@ -106,6 +106,15 @@ public class Claim
         ArgumentException.ThrowIfNullOrWhiteSpace(incidentLocation);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
 
+        ValidateMaximumLength(policyNumber, ClaimFieldLimits.PolicyNumber, nameof(policyNumber));
+        ValidateMaximumLength(market, ClaimFieldLimits.Market, nameof(market));
+        ValidateMaximumLength(currency, ClaimFieldLimits.Currency, nameof(currency));
+        ValidateMaximumLength(
+            incidentLocation,
+            ClaimFieldLimits.IncidentLocation,
+            nameof(incidentLocation));
+        ValidateMaximumLength(description, ClaimFieldLimits.Description, nameof(description));
+
         if (claimantId == Guid.Empty)
         {
             throw new ArgumentException(
@@ -338,6 +347,7 @@ public class Claim
     {
         ValidateDecision(officerId);
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        ValidateMaximumLength(reason, ClaimFieldLimits.DecisionReason, nameof(reason));
 
         if (settlementAmount <= 0)
         {
@@ -366,6 +376,7 @@ public class Claim
     {
         ValidateDecision(officerId);
         ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        ValidateMaximumLength(reason, ClaimFieldLimits.DecisionReason, nameof(reason));
 
         Status = ClaimStatus.Rejected;
         SettlementAmount = null;
@@ -392,6 +403,16 @@ public class Claim
         {
             throw new InvalidOperationException(
                 "Only a claim in review can be settled or rejected.");
+        }
+    }
+
+    private static void ValidateMaximumLength(string value, int maximumLength, string parameterName)
+    {
+        if (value.Trim().Length > maximumLength)
+        {
+            throw new ArgumentException(
+                $"{parameterName} cannot exceed {maximumLength} characters.",
+                parameterName);
         }
     }
 }

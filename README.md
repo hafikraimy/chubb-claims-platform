@@ -58,7 +58,8 @@ dotnet run --project ClaimsPlatform.Api --launch-profile http
 ```
 
 The API starts at `http://localhost:5234`. In Development it automatically
-applies EF Core migrations and seeds deterministic demo users and claims.
+applies EF Core migrations and seeds deterministic demo users and their team.
+Claims are intentionally created through the demo workflow rather than seeded.
 OpenAPI JSON is available at `http://localhost:5234/openapi/v1.json`.
 
 ### 3. Start Angular
@@ -110,4 +111,5 @@ run `docker compose down --volumes`.
 
 - `docs/assessment.md` contains the original requirements.
 - `docs/architecture.md` explains the architecture and scope choices.
+- `docs/demo_walkthrough.md` gives a repeatable demo and lists known limitations.
 - `docs/ai_working_journal.md` records significant AI-assisted decisions.

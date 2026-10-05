@@ -203,7 +203,8 @@ and unauthorized access returns `401` or `403` as appropriate.
 
 PostgreSQL runs as a local Docker container. This is a real PostgreSQL instance,
 but it requires no hosted database or shared credentials. EF Core migrations
-create the schema, and development startup seeds deterministic demo data. The
+create the schema, and development startup seeds deterministic demo identities
+and their team. Claims are created through the UI rather than seeded. The
 panel can clone the repository and create its own database with Docker Compose.
 
 For the evaluator path, Docker Compose also builds the ASP.NET Core API and the
@@ -318,7 +319,7 @@ areas are routes within the same application:
 /officer/queue
 /officer/my-work
 /officer/claims/:id
-/manager/dashboard
+/manager
 /manager/claims/:id
 ```
 
@@ -335,7 +336,7 @@ design system:
 
 - Claimant: create, list, view, and answer a request in a text form.
 - Officer: queue, own workload, claim assessment, request form, and final decision.
-- Manager: team dashboard and assignment.
+- Manager: team dashboard, assignment, and read-only claim detail.
 
 The information request must appear in the UI because providing additional
 information is an explicit claimant requirement. The officer sees a short

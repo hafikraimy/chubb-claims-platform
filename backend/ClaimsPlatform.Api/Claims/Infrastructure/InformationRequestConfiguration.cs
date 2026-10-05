@@ -27,7 +27,7 @@ public class InformationRequestConfiguration
 
         builder.Property(request => request.Question)
             .HasColumnName("question")
-            .HasMaxLength(1_000)
+            .HasMaxLength(ClaimFieldLimits.InformationQuestion)
             .IsRequired();
 
         builder.Property(request => request.RequestedAt)
@@ -37,7 +37,7 @@ public class InformationRequestConfiguration
 
         builder.Property(request => request.Response)
             .HasColumnName("response")
-            .HasMaxLength(2_000);
+            .HasMaxLength(ClaimFieldLimits.InformationResponse);
 
         builder.Property(request => request.RespondedAt)
             .HasColumnName("responded_at")

@@ -44,6 +44,13 @@ public class InformationRequest
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(question);
 
+        if (question.Trim().Length > ClaimFieldLimits.InformationQuestion)
+        {
+            throw new ArgumentException(
+                $"Question cannot exceed {ClaimFieldLimits.InformationQuestion} characters.",
+                nameof(question));
+        }
+
         return new InformationRequest(
             id: Guid.NewGuid(),
             claimId: claimId,
@@ -57,6 +64,13 @@ public class InformationRequest
         DateTimeOffset respondedAt)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(response);
+
+        if (response.Trim().Length > ClaimFieldLimits.InformationResponse)
+        {
+            throw new ArgumentException(
+                $"Response cannot exceed {ClaimFieldLimits.InformationResponse} characters.",
+                nameof(response));
+        }
 
         if (!IsOpen)
         {

@@ -180,3 +180,11 @@ dd {
     flex-direction: column;
   }
 }
+.claim-link {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.claim-link:hover {
+  text-decoration: underline;
+}

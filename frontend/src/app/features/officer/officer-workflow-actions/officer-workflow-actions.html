@@ -41,7 +41,8 @@
       </mat-form-field>
       <mat-form-field appearance="outline"
         ><mat-label>Decision reason</mat-label
-        ><textarea matInput rows="4" formControlName="reason"></textarea>
+        ><textarea matInput rows="4" maxlength="1000" formControlName="reason"></textarea>
+        <mat-hint align="end">{{ settleForm.controls.reason.value.length }}/1000</mat-hint>
         @if (settleForm.controls.reason.touched && settleForm.controls.reason.invalid) {
           <mat-error>Enter a decision reason.</mat-error>
         }
@@ -54,7 +55,8 @@
       <p>This decision closes the claim.</p>
       <mat-form-field appearance="outline"
         ><mat-label>Rejection reason</mat-label
-        ><textarea matInput rows="4" formControlName="reason"></textarea>
+        ><textarea matInput rows="4" maxlength="1000" formControlName="reason"></textarea>
+        <mat-hint align="end">{{ rejectForm.controls.reason.value.length }}/1000</mat-hint>
         @if (rejectForm.controls.reason.touched && rejectForm.controls.reason.invalid) {
           <mat-error>Enter a rejection reason.</mat-error>
         }

@@ -289,3 +289,21 @@ concurrency tests as a separate remaining task.
 I containerized Angular, the API, and PostgreSQL and wired them through Docker
 Compose. I chose this so the full app starts the same way on another machine
 and is less dependent on my local Node, .NET, or database setup.
+
+## Aligned validation and the manager walkthrough
+
+AI found that the UI allowed a 2,000-character decision reason while PostgreSQL
+only allowed 1,000. I accepted one shared backend limit and matched the UI to
+it, so bad API input becomes a clear validation error instead of a database
+failure.
+
+I added read-only manager claim detail even though the assessment does not
+require it. It keeps the dashboard easier to demonstrate without giving the
+manager officer workflow actions. I also wrote one repeatable demo path and
+called out the shortcuts instead of presenting them as production features.
+
+AI then put validation attributes on the generated properties of positional
+records. ASP.NET Core requires that metadata on the primary constructor, so it
+broke request information and both decision actions. I challenged the claimed
+fix, moved the attributes to the constructor parameters, and added a regression
+test for the actual metadata placement.

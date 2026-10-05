@@ -3,6 +3,7 @@ import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
 import { ApiError } from '../../../core/api/api-error';
 import { ManagerApiService } from '../../../core/api/manager-api.service';
 import { EmptyState } from '../../../shared/components/empty-state/empty-state';
@@ -25,6 +26,7 @@ type DashboardState =
     LoadingIndicator,
     MatButtonModule,
     MatProgressSpinnerModule,
+    RouterLink,
     StatusBadge,
   ],
   templateUrl: './manager-home-page.html',

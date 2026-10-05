@@ -46,9 +46,9 @@ export class OfficerWorkflowActions {
       Validators.required,
       Validators.min(0.01),
     ]),
-    reason: this.textControl(2000),
+    reason: this.textControl(1000),
   });
-  protected readonly rejectForm = new FormGroup({ reason: this.textControl(2000) });
+  protected readonly rejectForm = new FormGroup({ reason: this.textControl(1000) });
 
   protected selectAction(action: ActionType): void {
     this.activeAction.set(this.activeAction() === action ? null : action);

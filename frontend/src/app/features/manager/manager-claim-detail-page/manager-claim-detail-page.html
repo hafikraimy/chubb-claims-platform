@@ -1,0 +1,96 @@
+<a class="back-link" routerLink="/manager">← Back to manager overview</a>
+
+@let viewState = state();
+@switch (viewState.status) {
+  @case ('loading') {
+    <app-loading-indicator label="Loading claim details…" />
+  }
+  @case ('not-found') {
+    <section class="content-card" role="status">
+      <h1>Claim not found</h1>
+      <p>This claim does not exist or is outside your market.</p>
+      <a mat-stroked-button routerLink="/manager">Back to manager overview</a>
+    </section>
+  }
+  @case ('error') {
+    <section class="content-card error-card" role="alert">
+      <h1>We could not load this claim</h1>
+      <p>{{ viewState.error.detail }}</p>
+      <button mat-stroked-button type="button" (click)="loadClaim()">Try again</button>
+    </section>
+  }
+  @case ('loaded') {
+    @let claim = viewState.claim;
+    <header class="claim-header">
+      <div>
+        <p class="section-label">{{ claim.type }} claim</p>
+        <h1>{{ claim.referenceNumber }}</h1>
+        <p>Submitted {{ claim.submittedAt | date: 'mediumDate' }} · {{ claim.market }}</p>
+      </div>
+      <app-status-badge [status]="claim.status" />
+    </header>
+
+    @if (claim.status === ClaimStatus.Settled || claim.status === ClaimStatus.Rejected) {
+      <section class="content-card decision">
+        <p class="section-label">Final decision</p>
+        <h2>Claim {{ claim.status === ClaimStatus.Settled ? 'settled' : 'rejected' }}</h2>
+        <p>{{ claim.decisionReason }}</p>
+        @if (claim.settlementAmount !== null) {
+          <strong>{{ claim.settlementAmount | currency: claim.currency }}</strong>
+        }
+      </section>
+    }
+
+    <div class="summary-grid">
+      <section class="content-card">
+        <p class="section-label">Incident</p>
+        <dl>
+          <div><dt>Date</dt><dd>{{ claim.incidentDate | date: 'd MMM y' }}</dd></div>
+          <div><dt>Location</dt><dd>{{ claim.incidentLocation }}</dd></div>
+          <div><dt>Policy</dt><dd>{{ claim.policyNumber }}</dd></div>
+        </dl>
+      </section>
+      <section class="content-card">
+        <p class="section-label">Financial summary</p>
+        <dl>
+          <div><dt>Reported loss</dt><dd>{{ claim.reportedLossAmount | currency: claim.currency }}</dd></div>
+          <div><dt>Assessed loss</dt><dd>{{ claim.assessedLossAmount === null ? 'Not assessed' : (claim.assessedLossAmount | currency: claim.currency) }}</dd></div>
+          @if (claim.settlementAmount !== null) {
+            <div><dt>Settlement</dt><dd>{{ claim.settlementAmount | currency: claim.currency }}</dd></div>
+          }
+        </dl>
+      </section>
+    </div>
+
+    <section class="content-card section">
+      <p class="section-label">Description</p>
+      <p class="description">{{ claim.description }}</p>
+    </section>
+
+    <section class="section" aria-labelledby="information-title">
+      <h2 id="information-title">Information requests</h2>
+      @if (claim.informationRequests.length === 0) {
+        <p>No additional information has been requested.</p>
+      } @else {
+        <div class="request-list">
+          @for (request of claim.informationRequests; track request.id) {
+            <article class="content-card">
+              <strong>{{ request.question }}</strong>
+              <time [attr.datetime]="request.requestedAt">Requested {{ request.requestedAt | date: 'medium' }}</time>
+              <p>{{ request.response ?? 'Awaiting claimant response' }}</p>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="section" aria-labelledby="history-title">
+      <h2 id="history-title">Claim history</h2>
+      <ol class="timeline">
+        @for (entry of claim.history; track entry.id) {
+          <li><span>{{ entry.description }}</span><time [attr.datetime]="entry.occurredAt">{{ entry.occurredAt | date: 'medium' }}</time></li>
+        }
+      </ol>
+    </section>
+  }
+}

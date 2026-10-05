@@ -256,6 +256,48 @@ public class ClaimWorkflowTests
         Assert.Null(claim.SettlementAmount);
     }
 
+    [Theory]
+    [InlineData(ClaimStatus.Settled)]
+    [InlineData(ClaimStatus.Rejected)]
+    public void Decide_WithReasonOverDatabaseLimit_RejectsDecision(ClaimStatus decision)
+    {
+        var claim = CreateInReviewClaim();
+        var reason = new string('x', ClaimFieldLimits.DecisionReason + 1);
+
+        var exception = Assert.Throws<ArgumentException>(() =>
+        {
+            if (decision == ClaimStatus.Settled)
+            {
+                claim.Settle(OfficerId, 2_000m, reason, SubmittedAt.AddHours(2));
+            }
+            else
+            {
+                claim.Reject(OfficerId, reason, SubmittedAt.AddHours(2));
+            }
+        });
+
+        Assert.Equal("reason", exception.ParamName);
+        Assert.Equal(ClaimStatus.InReview, claim.Status);
+    }
+
+    [Fact]
+    public void InformationRequest_WithTextOverDatabaseLimits_RejectsText()
+    {
+        var claim = CreateInReviewClaim();
+        Assert.Throws<ArgumentException>(() => claim.RequestInformation(
+            OfficerId,
+            new string('q', ClaimFieldLimits.InformationQuestion + 1),
+            SubmittedAt.AddHours(2)));
+
+        var awaitingClaim = CreateAwaitingInformationClaim();
+        var requestId = awaitingClaim.InformationRequests.Single().Id;
+        Assert.Throws<ArgumentException>(() => awaitingClaim.RespondToInformationRequest(
+            ClaimantId,
+            requestId,
+            new string('r', ClaimFieldLimits.InformationResponse + 1),
+            SubmittedAt.AddHours(3)));
+    }
+
     [Fact]
     public void Reject_ByDifferentOfficer_RejectsDecision()
     {
